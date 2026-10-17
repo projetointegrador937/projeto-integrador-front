@@ -1,0 +1,589 @@
+
+.perfil-page {
+    flex: 1 0 auto;
+    width: 100%;
+    min-width: 0;
+    padding: 40px 20px;
+    background-color: var(--main-color);
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+}
+
+.perfil-container {
+    width: 100%;
+    max-width: 950px;
+    min-width: 0;
+}
+
+/* Alternância demonstrativa entre os tipos de conta */
+
+.perfil-tipo-conta {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-bottom: 18px;
+    color: #B8B8B8;
+    font-size: 12px;
+}
+
+.perfil-tipo-botoes {
+    display: flex;
+    gap: 5px;
+    padding: 4px;
+    border: 1px solid #303438;
+    border-radius: 8px;
+    background-color: #191D21;
+}
+
+.perfil-tipo-botoes button {
+    padding: 9px 14px;
+    border: none;
+    border-radius: 5px;
+    background: transparent;
+    color: #D4C4B7;
+    font: inherit;
+    cursor: pointer;
+}
+
+.perfil-tipo-botoes button.ativo {
+    background-color: #F2BE8C;
+    color: #1D2023;
+    font-weight: bold;
+}
+
+/* Card principal */
+
+.perfil-card {
+    width: 100%;
+    min-width: 0;
+    padding: 35px;
+    border: 1px solid #303438;
+    border-radius: 14px;
+    background-color: #191D21;
+    display: flex;
+    flex-direction: column;
+    gap: 30px;
+}
+
+.perfil-header {
+    display: flex;
+    align-items: center;
+    gap: 18px;
+    padding-bottom: 25px;
+    border-bottom: 1px solid #303438;
+}
+
+.perfil-avatar {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 64px;
+    height: 64px;
+    flex-shrink: 0;
+    border: 1px solid #F2BE8C;
+    border-radius: 50%;
+    background-color: #323538;
+}
+
+.perfil-avatar span {
+    color: #F2BE8C;
+    font-size: 24px;
+    font-weight: bold;
+}
+
+.perfil-header h1 {
+    margin: 0 0 8px;
+    color: #F2BE8C;
+    font-size: 28px;
+    line-height: 1.3;
+}
+
+.perfil-header p {
+    margin: 0;
+    color: #D4C4B7;
+    font-size: 14px;
+    line-height: 1.6;
+}
+
+/* Seções e campos */
+
+.perfil-secao {
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+    min-width: 0;
+}
+
+.perfil-secao h2 {
+    margin: 0;
+    color: #F2BE8C;
+    font-size: 19px;
+}
+
+.perfil-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 20px;
+    min-width: 0;
+}
+
+.perfil-campo {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    min-width: 0;
+}
+
+.perfil-campo label {
+    color: #F2BE8C;
+    font-size: 13px;
+}
+
+.perfil-valor,
+.perfil-input {
+    width: 100%;
+    min-width: 0;
+    min-height: 44px;
+    padding: 12px;
+    border: 1px solid #45494D;
+    border-radius: 8px;
+    background-color: #323538;
+    color: #FFFFFF;
+    font-family: inherit;
+    font-size: 14px;
+}
+
+.perfil-valor {
+    overflow-wrap: anywhere;
+}
+
+.perfil-input {
+    outline: none;
+    transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.perfil-input::placeholder {
+    color: #9C9C9C;
+    opacity: 1;
+}
+
+.perfil-input:focus {
+    border-color: #F2BE8C;
+    box-shadow: 0 0 0 2px rgb(242 190 140 / 15%);
+}
+
+.perfil-input:hover {
+    border-color: #777B80;
+}
+
+.perfil-input select,
+select.perfil-input {
+    cursor: pointer;
+}
+
+select.perfil-input option {
+    background-color: #191D21;
+    color: #FFFFFF;
+}
+
+.perfil-textarea {
+    min-height: 110px;
+    resize: vertical;
+    line-height: 1.7;
+}
+
+.perfil-campo-completo {
+    grid-column: 1 / -1;
+}
+
+/* Botões */
+
+.perfil-acoes {
+    display: flex;
+    justify-content: flex-end;
+    padding-top: 20px;
+    border-top: 1px solid #303438;
+}
+
+.perfil-salvar {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 12px 22px;
+    border: 1px solid #F2BE8C;
+    border-radius: 8px;
+    background-color: #F2BE8C;
+    color: #1D2023;
+    font-size: 13px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: background-color 0.2s, transform 0.2s;
+}
+
+.perfil-salvar:hover {
+    background-color: #E5A96F;
+}
+
+.perfil-salvar:active {
+    transform: scale(0.98);
+}
+
+/* Resumo da empresa */
+
+.perfil-resumo-empresa {
+    display: grid;
+    grid-template-columns: minmax(0, 2fr) minmax(0, 1fr);
+    gap: 14px;
+}
+
+.perfil-resumo-empresa > div {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    min-width: 0;
+    padding: 18px;
+    border: 1px solid #303438;
+    border-radius: 8px;
+    background-color: #202326;
+}
+
+.perfil-resumo-empresa span {
+    color: #B8B8B8;
+    font-size: 10px;
+    font-weight: bold;
+    letter-spacing: 0.6px;
+}
+
+.perfil-resumo-empresa strong {
+    color: #F2BE8C;
+    font-size: 17px;
+    overflow-wrap: anywhere;
+}
+
+/* Abas empresariais */
+
+.perfil-abas-empresa {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid #303438;
+}
+
+.perfil-abas-empresa button {
+    padding: 12px 16px;
+    border: 1px solid transparent;
+    border-radius: 6px;
+    background-color: transparent;
+    color: #B8B8B8;
+    font-family: inherit;
+    font-size: 13px;
+    cursor: pointer;
+}
+
+.perfil-abas-empresa button:hover {
+    background-color: #25292C;
+    color: #FFFFFF;
+}
+
+.perfil-abas-empresa button.ativo {
+    border-color: #45403A;
+    background-color: #323538;
+    color: #F2BE8C;
+    font-weight: bold;
+}
+
+.perfil-secao-titulo {
+    display: flex;
+    flex-direction: column;
+    gap: 7px;
+    margin-top: 5px;
+}
+
+.perfil-secao-titulo p,
+.perfil-funcionarios-cabecalho p {
+    margin: 0;
+    color: #B8B8B8;
+    font-size: 12px;
+    line-height: 1.7;
+}
+
+/* Equipe */
+
+.perfil-funcionarios-cabecalho {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 16px;
+}
+
+.perfil-funcionarios-cabecalho > div {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.perfil-funcionario-form {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    padding: 22px;
+    border: 1px solid #383D41;
+    border-radius: 8px;
+    background-color: #202326;
+}
+
+.perfil-funcionario-form h3 {
+    margin: 0;
+    color: #FFFFFF;
+    font-size: 16px;
+}
+
+.perfil-funcionarios-vazio {
+    padding: 35px 20px;
+    border: 1px dashed #45494D;
+    border-radius: 8px;
+    text-align: center;
+}
+
+.perfil-funcionarios-vazio > span {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 42px;
+    height: 42px;
+    margin-bottom: 12px;
+    border-radius: 50%;
+    background-color: #323538;
+    color: #F2BE8C;
+    font-size: 25px;
+}
+
+.perfil-funcionarios-vazio h3 {
+    margin: 0 0 10px;
+    color: #FFFFFF;
+    font-size: 16px;
+}
+
+.perfil-funcionarios-vazio p {
+    max-width: 430px;
+    margin: 0 auto;
+    color: #B8B8B8;
+    font-size: 12px;
+    line-height: 1.8;
+}
+
+.perfil-lista-funcionarios {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.perfil-funcionario {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    min-width: 0;
+    padding: 18px;
+    border: 1px solid #303438;
+    border-radius: 8px;
+    background-color: #202326;
+}
+
+.perfil-funcionario-avatar {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 44px;
+    height: 44px;
+    flex-shrink: 0;
+    border: 1px solid #66513D;
+    border-radius: 50%;
+    background-color: #323538;
+    color: #F2BE8C;
+    font-size: 18px;
+    font-weight: bold;
+}
+
+.perfil-funcionario-info {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    gap: 5px;
+    min-width: 0;
+}
+
+.perfil-funcionario-info h3 {
+    margin: 0;
+    color: #FFFFFF;
+    font-size: 14px;
+    overflow-wrap: anywhere;
+}
+
+.perfil-funcionario-info p,
+.perfil-funcionario-info span {
+    margin: 0;
+    color: #B8B8B8;
+    font-size: 12px;
+    overflow-wrap: anywhere;
+}
+
+.perfil-funcionario-acoes {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 9px;
+    flex-shrink: 0;
+}
+
+.perfil-status {
+    padding: 5px 9px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: bold;
+}
+
+.status-ativo {
+    background-color: #25382D;
+    color: #9BDBAE;
+}
+
+.status-inativo {
+    background-color: #3A3030;
+    color: #E2AAAA;
+}
+
+.perfil-vinculo-botao {
+    padding: 7px 10px;
+    border: 1px solid #45494D;
+    border-radius: 5px;
+    background-color: transparent;
+    color: #D4C4B7;
+    font-family: inherit;
+    font-size: 11px;
+    cursor: pointer;
+}
+
+.perfil-vinculo-botao:hover {
+    border-color: #F2BE8C;
+    color: #F2BE8C;
+}
+
+/* Mensagens */
+
+.perfil-mensagem {
+    margin: -12px 0 0;
+    color: #F2BE8C;
+    font-size: 13px;
+    line-height: 1.6;
+}
+
+/* Responsividade */
+
+@media (max-width: 650px) {
+    .perfil-page {
+        padding: 25px 15px;
+    }
+
+    .perfil-card {
+        padding: 22px 18px;
+        gap: 25px;
+    }
+
+    .perfil-header {
+        align-items: flex-start;
+        gap: 13px;
+    }
+
+    .perfil-avatar {
+        width: 50px;
+        height: 50px;
+    }
+
+    .perfil-avatar span {
+        font-size: 19px;
+    }
+
+    .perfil-header h1 {
+        font-size: 22px;
+    }
+
+    .perfil-header p {
+        font-size: 12px;
+    }
+
+    .perfil-grid {
+        grid-template-columns: 1fr;
+        gap: 17px;
+    }
+
+    .perfil-campo-completo {
+        grid-column: auto;
+    }
+
+    .perfil-resumo-empresa {
+        grid-template-columns: 1fr;
+    }
+
+    .perfil-tipo-conta {
+        justify-content: space-between;
+    }
+
+    .perfil-funcionarios-cabecalho {
+        align-items: stretch;
+        flex-direction: column;
+    }
+
+    .perfil-funcionarios-cabecalho .perfil-salvar {
+        align-self: flex-start;
+    }
+
+    .perfil-funcionario {
+        align-items: flex-start;
+        flex-wrap: wrap;
+    }
+
+    .perfil-funcionario-info {
+        flex-basis: calc(100% - 65px);
+    }
+
+    .perfil-funcionario-acoes {
+        align-items: flex-start;
+        width: 100%;
+        padding-top: 12px;
+        border-top: 1px solid #303438;
+    }
+
+    .perfil-acoes .perfil-salvar {
+        width: 100%;
+    }
+
+    .perfil-abas-empresa button {
+        flex: 1;
+        padding: 11px 8px;
+    }
+}
+
+@media (max-width: 380px) {
+    .perfil-page {
+        padding: 20px 10px;
+    }
+
+    .perfil-card {
+        padding: 18px 14px;
+    }
+
+    .perfil-tipo-conta {
+        align-items: flex-start;
+        flex-direction: column;
+    }
+
+    .perfil-funcionario-form {
+        padding: 16px;
+    }
+}

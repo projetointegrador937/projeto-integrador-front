@@ -1,0 +1,226 @@
+
+.contato-page {
+    flex: 1 0 auto;
+    width: 100%;
+    padding: 45px 24px 65px;
+    background-color: var(--main-color);
+    color: #FFFFFF;
+}
+
+.contato-container {
+    width: 100%;
+    max-width: 850px;
+    margin: 0 auto;
+}
+
+/* Apresentação */
+
+.contato-apresentacao {
+    margin-bottom: 32px;
+    text-align: center;
+}
+
+.contato-etiqueta {
+    display: inline-block;
+    margin-bottom: 12px;
+    color: #F2BE8C;
+    font-size: 10px;
+    font-weight: bold;
+    letter-spacing: 1px;
+}
+
+.contato-apresentacao h1 {
+    margin: 0 0 16px;
+    font-size: clamp(30px, 4vw, 42px);
+    line-height: 1.2;
+    letter-spacing: -0.7px;
+}
+
+.contato-apresentacao h1 span {
+    color: #F2BE8C;
+    font-style: italic;
+}
+
+.contato-apresentacao p {
+    max-width: 650px;
+    margin: 0 auto;
+    color: #B8B8B8;
+    font-size: 14px;
+    line-height: 1.8;
+}
+
+/* Card do formulário */
+
+.contato-card {
+    padding: 35px;
+    border: 1px solid #303438;
+    border-radius: 10px;
+    background-color: #1D2023;
+}
+
+.contato-card-cabecalho {
+    margin-bottom: 28px;
+    padding-bottom: 22px;
+    border-bottom: 1px solid #323538;
+}
+
+.contato-card-cabecalho h2 {
+    margin: 0 0 9px;
+    font-size: 24px;
+}
+
+.contato-card-cabecalho p {
+    margin: 0;
+    color: #B8B8B8;
+    font-size: 13px;
+    line-height: 1.7;
+}
+
+/* Organização dos campos */
+
+.contato-formulario {
+    display: flex;
+    flex-direction: column;
+    gap: 22px;
+}
+
+.contato-campos-duplos {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 18px;
+}
+
+.contato-campo {
+    display: flex;
+    flex-direction: column;
+    gap: 9px;
+    min-width: 0;
+}
+
+.contato-campo label {
+    color: #F2BE8C;
+    font-size: 13px;
+    font-weight: 600;
+}
+
+.contato-campo label span {
+    color: #B8B8B8;
+    font-size: 12px;
+    font-weight: normal;
+}
+
+.contato-campo input,
+.contato-campo select,
+.contato-campo textarea {
+    width: 100%;
+    min-width: 0;
+    padding: 13px 14px;
+    border: 1px solid #3A3E42;
+    border-radius: 5px;
+    outline: none;
+    background-color: #111417;
+    color: #FFFFFF;
+    font-family: inherit;
+    font-size: 13px;
+    transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.contato-campo input,
+.contato-campo select {
+    min-height: 45px;
+}
+
+.contato-campo select {
+    cursor: pointer;
+}
+
+.contato-campo select option {
+    background-color: #111417;
+    color: #FFFFFF;
+}
+
+.contato-campo input::placeholder,
+.contato-campo textarea::placeholder {
+    color: #777D82;
+}
+
+.contato-campo input:focus,
+.contato-campo select:focus,
+.contato-campo textarea:focus {
+    border-color: #F2BE8C;
+    box-shadow: 0 0 0 2px rgba(242, 190, 140, 0.12);
+}
+
+.contato-campo textarea {
+    min-height: 150px;
+    resize: vertical;
+    line-height: 1.7;
+}
+
+/* Botão de envio */
+
+.contato-botao {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 14px;
+    align-self: flex-start;
+    padding: 14px 22px;
+    border: 1px solid #F2BE8C;
+    border-radius: 5px;
+    background-color: #F2BE8C;
+    color: #1D2023;
+    font-size: 11px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: background-color 0.2s, transform 0.2s;
+}
+
+.contato-botao:hover {
+    background-color: #FFD0A3;
+    transform: translateY(-2px);
+}
+
+.contato-status {
+    margin: -8px 0 0;
+    color: #F2BE8C;
+    font-size: 13px;
+    line-height: 1.6;
+}
+
+/* Responsividade */
+
+@media (max-width: 600px) {
+    .contato-page {
+        padding: 30px 15px 45px;
+    }
+
+    .contato-apresentacao {
+        margin-bottom: 25px;
+    }
+
+    .contato-apresentacao h1 {
+        font-size: 32px;
+    }
+
+    .contato-apresentacao p {
+        font-size: 13px;
+    }
+
+    .contato-card {
+        padding: 22px 18px;
+    }
+
+    .contato-card-cabecalho h2 {
+        font-size: 21px;
+    }
+
+    .contato-campos-duplos {
+        grid-template-columns: 1fr;
+        gap: 22px;
+    }
+
+    .contato-botao {
+        width: 100%;
+    }
+}
