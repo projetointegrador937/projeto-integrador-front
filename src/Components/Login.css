@@ -1,0 +1,131 @@
+.login-page {
+    min-height: 100vh;
+    width: 100%;
+    background-color: var(--main-color);
+
+    display: flex;
+    justify-content: center;
+    align-items: center;
+
+    padding: 30px 20px;
+    box-sizing: border-box;
+}
+
+.login-card {
+    width: 100%;
+    max-width: 400px;
+
+    background-color: #191D21;
+    border: 1px solid #303438;
+    border-radius: 14px;
+
+    padding: 35px;
+    box-sizing: border-box;
+
+    display: flex;
+    flex-direction: column;
+}
+
+.login-card h1{
+    color: #F2BE8C;
+    font-size: 28px;
+    text-align: center;
+    margin: 0 0 10px;
+}
+
+.login-subtitle {
+    color: #D4C4B7;
+    text-align: center;
+    margin: 0 0 30px;
+}
+
+.login-card form {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.login-field {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.login-field label {
+    color: #F2BE8C;
+    font-size: 14px;
+}
+
+.login-field input {
+    width: 100%;
+    padding: 12px;
+
+    background-color: #111417;
+    color:  #FFFF;
+
+    border: 1px solid #45494D;
+    border-radius: 8px;
+
+    font-size: 14px;
+    box-sizing: border-box;
+    outline: none;
+    transition: border-color 0.2s ease;
+}
+
+.login-field input:focus {
+    border-color: #F2BE8C;
+}
+
+.login-field input::placeholder {
+    color: #777D82;
+}
+
+.login-submit,
+.login-switch {
+    width: 100%;
+    padding: 12px;
+
+    margin-top: 5px;
+
+    background-color: #F2BE8C;
+    color: #21170F;
+
+    border: 1px solid #F2BE8C;
+    border-radius: 8px;
+
+    font-size: 15px;
+    font-weight: 600;
+
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+}
+
+.login-submit {
+    margin-top: 5px;
+    background-color: #F2BE8C;
+    color: #21170F;
+    border: 1px solid #F2BE8C;
+}
+
+.login-submit:hover {
+    background-color: #E5A96F;
+}
+
+.login-switch-text {
+    color: #D4C4B7;
+    text-align: center;
+    font-size: 14px;
+
+    margin: 25px 0 12px;
+}
+
+.login-switch {
+    background-color: transparent;
+    color: #F2BE8C;
+    border: 1px solid #F2BE8C;
+}
+
+.login-switch:hover {
+    background-color: #F2BE8C;
+    color: #21170F;
+}

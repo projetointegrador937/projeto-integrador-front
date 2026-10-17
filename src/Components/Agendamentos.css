@@ -1,0 +1,507 @@
+.agendamentos-page {
+    flex: 1 0 auto;
+    width: 100%;
+    padding: 35px 5%;
+    background-color: var(--main-color);
+    color: #FFFFFF;
+}
+
+.demo-perfis {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+    margin: 0 auto 24px;
+    max-width: 1200px;
+    color: #B8B8B8;
+    font-size: 12px;
+}
+
+.demo-perfis button,
+.calendario-cabecalho button {
+    padding: 8px 12px;
+    border: 1px solid #45494D;
+    border-radius: 6px;
+    background-color: #25292C;
+    color: #F2BE8C;
+    cursor: pointer;
+}
+
+.agenda-titulo {
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    gap: 8px;
+    width: 100%;
+    margin: 0 auto 28px;
+}
+
+.agenda-titulo h1 {
+    margin: 0;
+    color: #F2BE8C;
+    font-size: clamp(28px, 3vw, 38px);
+    line-height: 1.2;;
+}
+
+.agenda-titulo p {
+    margin: 0;
+    color: #B8B8B8;
+    font-size: 14px;
+    line-height: 1.6;
+}
+
+/* Visitante */
+.agenda-login {
+    max-width: 520px;
+    margin: 70px auto;
+    padding: 40px 30px;
+    text-align: center;
+    background-color: #1D2023;
+    border: 1px solid #303438;
+    border-radius: 12px;
+}
+
+.agenda-login-icone {
+    font-size: 38px;
+}
+
+.agenda-login h1 {
+    margin: 18px 0 12px;
+    color: #F2BE8C;
+}
+
+.agenda-login p {
+    margin-bottom: 25px;
+    color: #B8B8B8;
+    font-size: 14px;
+    line-height: 1.8;
+}
+
+.agenda-botao-principal {
+    display: inline-block;
+    padding: 12px 22px;
+    border-radius: 6px;
+    background-color: #F2BE8C;
+    color: #1D2023;
+    text-decoration: none;
+    font-size: 13px;
+    font-weight: bold;
+}
+
+/* Abas do cliente */
+.agenda-abas {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 18px;
+    padding: 6px;
+    background-color: #1D2023;
+    border-radius: 6px;
+}
+
+.agenda-abas button {
+    padding: 12px 18px;
+    border: 0;
+    border-radius: 5px;
+    background: transparent;
+    color: #D4C4B7;
+    cursor: pointer;
+    text-transform: uppercase;
+    font-size: 11px;
+}
+
+.agenda-abas button.ativa {
+    background-color: #F2BE8C;
+    color: #1D2023;
+}
+
+.reserva-card,
+.historico-card,
+.calendario-card,
+.agenda-dia {
+    padding: 22px;
+    background-color: #1D2023;
+    border: 1px solid #292D30;
+    border-radius: 9px;
+}
+
+.reserva-topo {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 16px;
+    margin-bottom: 20px;
+}
+
+.agenda-etiqueta {
+    display: block;
+    margin-bottom: 5px;
+    color: #F2BE8C;
+    font-size: 10px;
+    font-weight: bold;
+}
+
+.reserva-topo h2 {
+    margin: 0 0 8px;
+    font-size: 22px;
+}
+
+.reserva-topo p,
+.reserva-detalhes small {
+    color: #B8B8B8;
+    font-size: 12px;
+}
+
+.reserva-status,
+.historico-status {
+    white-space: nowrap;
+    padding: 6px 10px;
+    border-radius: 20px;
+    background-color: #123D32;
+    color: #80D8B7;
+    font-size: 10px;
+}
+
+.reserva-detalhes {
+    display: grid;
+    grid-template-columns: 1fr 1.5fr 0.8fr;
+    gap: 18px;
+    padding: 20px;
+    background-color: #111417;
+    border-radius: 7px;
+}
+
+.reserva-detalhes strong,
+.reserva-detalhes small {
+    display: block;
+}
+
+.reserva-detalhes strong {
+    margin-bottom: 6px;
+    font-size: 13px;
+}
+
+.reserva-detalhes small {
+    line-height: 1.5;
+}
+
+.reserva-detalhes > div:last-child {
+    text-align: right;
+}
+
+.reserva-detalhes .reserva-preco {
+    color: #F2BE8C;
+    font-size: 20px;
+}
+
+.reserva-data {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-top: 18px;
+    padding: 17px;
+    background-color: #292D30;
+    border-radius: 7px;
+}
+
+.reserva-data strong {
+    font-size: 13px;
+}
+
+.reserva-data > span {
+    color: #D4C4B7;
+    font-size: 11px;
+}
+
+.reserva-acoes {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 10px;
+    margin-top: 20px;
+}
+
+.reserva-acoes button {
+    padding: 11px 14px;
+    border: 0;
+    border-radius: 5px;
+    background-color: #323538;
+    color: #F2BE8C;
+    cursor: pointer;
+    font-size: 11px;
+    text-transform: uppercase;
+}
+
+.reserva-acoes .cancelar {
+    margin-left: auto;
+    background-color: #401F23;
+    color: #FFAAAA;
+}
+
+/* Histórico */
+.historico-lista {
+    display: grid;
+    gap: 14px;
+}
+
+.historico-card {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 15px;
+}
+
+.historico-card h3 {
+    margin: 0 0 8px;
+    font-size: 15px;
+}
+
+.historico-card p,
+.historico-card small {
+    margin: 4px 0;
+    color: #B8B8B8;
+    font-size: 12px;
+}
+
+.historico-status {
+    background-color: #323538;
+    color: #D4C4B7;
+}
+
+/* Calendário do funcionário */
+.agenda-funcionario {
+    width: 100%;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.calendario-card {
+    width: 100%;
+    max-width: none;
+    padding: 24px;
+    background-color: #1D2023;
+    border: 1px solid #303438;
+    border-radius: 10px;
+}
+
+.calendario-cabecalho {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 20px;
+}
+
+.calendario-cabecalho h2 {
+    margin: 0;
+    color: #F2BE8C;
+    font-size: 22px;
+    text-align: center;
+}
+
+.calendario-grade {
+    display: grid;
+    grid-template-columns: repeat(7, minmax(0, 1fr));
+    gap: 6px;
+}
+
+.calendario-semana {
+    padding: 10px 0;
+    color: #B8B8B8;
+    text-align: center;
+    font-size: 12px;
+}
+
+.calendario-dia,
+.calendario-vazio {
+    min-height: 64px;
+    border-radius: 6px;
+}
+
+.calendario-dia {
+    position: relative;
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+    padding: 12px 5px;
+    border: 1px solid #303438;
+    background-color: #25292C;
+    color: #FFFFFF;
+    cursor: pointer;
+}
+
+.calendario-dia:hover,
+.calendario-dia.selecionado {
+    border-color: #F2BE8C;
+    background-color: #3A3027;
+}
+
+.calendario-dia.ocupado i,
+.calendario-legenda i {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background-color: #F2BE8C;
+}
+
+.calendario-dia.ocupado i {
+    position: absolute;
+    bottom: 8px;
+}
+
+.calendario-legenda {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    gap: 10px;
+    margin-top: 18px;
+    color: #B8B8B8;
+    font-size: 11px;
+}
+
+.calendario-legenda span:first-child {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+}
+
+.agenda-dia {
+    width: 100%;
+    max-width: none;
+    min-height: 100px;
+    margin-top: 24px;
+    padding: 24px;
+    background-color: #1D2023;
+    border: 1px solid #303438;
+    border-radius: 10px;
+}
+
+.agenda-dia:has(> h2:only-child) {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    min-height: 120px;
+}
+
+.agenda-dia h2 {
+    margin: 0 0 18px;
+    color: #F2BE8C;
+    font-size: 18px;
+    font-weight: 500;
+}
+
+.agenda-dia:has(> h2:only-child) h2 {
+    margin: 0;
+    color: #B8B8B8;
+}
+
+.cliente-horario {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 16px 0;
+    border-top: 1px solid #303438;
+}
+
+.cliente-hora {
+    min-width: 60px;
+    color: #F2BE8C;
+}
+
+.cliente-info {
+    flex: 1;
+}
+
+.cliente-info h3 {
+    margin: 0 0 5px;
+    font-size: 14px;
+}
+
+.cliente-info p,
+.agenda-vazia {
+    margin: 0;
+    color: #B8B8B8;
+    font-size: 12px;
+}
+
+.cliente-status {
+    padding: 6px 9px;
+    border-radius: 20px;
+    background-color: #123D32;
+    color: #80D8B7;
+    font-size: 10px;
+}
+
+.cliente-status.pendente {
+    background-color: #45371E;
+    color: #F2BE8C;
+}
+
+/* Responsividade */
+@media (max-width: 700px) {
+
+    .agenda-funcionario {
+    width: 100%;
+    }
+
+    .agendamentos-page {
+        padding: 25px 15px;
+    }
+
+    .reserva-detalhes {
+        grid-template-columns: 1fr;
+    }
+
+    .reserva-detalhes > div:last-child {
+        text-align: left;
+    }
+
+    .reserva-topo,
+    .historico-card {
+        flex-direction: column;
+    }
+
+    .reserva-acoes {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .reserva-acoes .cancelar {
+        margin-left: 0;
+    }
+
+    .agenda-abas {
+        flex-direction: column;
+    }
+
+    .calendario-card,
+    .agenda-dia {
+        width: 100%;
+        padding: 14px;
+    }
+
+    .calendario-grade {
+        gap: 3px;
+    }
+
+    .calendario-dia,
+    .calendario-vazio {
+        min-height: 44px;
+    }
+
+    .calendario-dia {
+        padding: 8px 3px;
+    }
+
+    .cliente-horario {
+        align-items: flex-start;
+        flex-wrap: wrap;
+        gap: 10px;
+    }
+
+    .cliente-info {
+        min-width: 60%;
+    }
+}

@@ -1,0 +1,99 @@
+.pesquisa-page {
+    flex: 1;
+    width: 100%;
+    background-color: var(--main-color);
+    padding: 40px 20px;
+    box-sizing: border-box;
+}
+
+.pesquisa-container {
+    width: 100%;
+    max-width: 1000px;
+    margin: 0 auto;
+}
+
+.pesquisa-container h1 {
+    color: #F2BE8C;
+    font-size: 28px;
+    text-align: center;
+    margin: 0 0 10px;
+}
+
+.pesquisa-container p {
+    color: #F2BE8C;
+    text-align: center;
+    margin-bottom: 25px;
+}
+
+.pesquisa-form {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 30px;
+    flex-wrap: wrap;
+}
+
+.pesquisa-form input {
+    flex: 1 1 250px;
+    min-width: 0;
+    padding: 14px;
+    background-color: #191D21;
+    color: #FFFFFF;
+    border: 1px solid #45494D;
+    border-radius: 8px;
+    font-size: 15px;
+    outline: none;
+}
+
+.pesquisa-form input:focus {
+    border-color: #F2BE8C;
+}
+
+.pesquisa-form input::placeholder {
+    color: #777D82;
+}
+
+.pesquisa-form button {
+    padding: 12px 22px;
+    background-color: #F2BE8C;
+    color: #21170F;
+    border: 1px solid #F2BE8C;
+    border-radius: 8px;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.pesquisa-form button:hover {
+    background-color: #E5A96F;
+}
+
+.mapa-container {
+    width: 100%;
+    height: 450px;
+    overflow: hidden;
+    border: 1px solid #303438;
+    border-radius: 12px;
+}
+
+.mapa-container iframe {
+    width: 100%;
+    height: 100%;
+    border: 0;
+}
+
+@media (max-width: 600px) {
+    .pesquisa-form {
+        flex-direction: column;
+        
+    }
+
+    .pesquisa-form button {
+        width: 100%;
+    }
+
+    .mapa-container {
+        height: 350px;
+    }
+}
+
+
