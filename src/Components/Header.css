@@ -111,6 +111,52 @@
     object-fit: contain;
 }
 
+.account-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 190;
+    border: 0;
+    background: rgba(0, 0, 0, 0.5);
+    cursor: pointer;
+}
+
+.account-sidebar {
+    position: fixed;
+    top: 0;
+    right: 0;
+    z-index: 200;
+    width: min(360px, 88vw);
+    height: 100vh;
+    padding: 28px 24px;
+    box-sizing: border-box;
+    background: #191D21;
+    border-left: 1px solid #45494D;
+    box-shadow: -10px 0 30px rgba(0, 0, 0, 0.35);
+    animation: account-sidebar-in 0.25s ease-out;
+}
+
+@keyframes account-sidebar-in {
+    from { transform: translateX(100%); }
+    to { transform: translateX(0); }
+}
+
+.account-sidebar-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    color: #F2BE8C;
+    border-bottom: 1px solid #303438;
+    padding-bottom: 18px;
+}
+
+.account-sidebar-header h2 { margin: 0; }
+.account-sidebar-header button { border: 0; background: transparent; color: #D4C4B7; font-size: 30px; cursor: pointer; }
+.account-sidebar-actions { display: grid; gap: 12px; margin-top: 28px; }
+.account-sidebar-actions button { padding: 13px; border: 1px solid #F2BE8C; border-radius: 8px; background: transparent; color: #F2BE8C; cursor: pointer; font-size: 14px; }
+.account-sidebar-actions button:hover { background: #F2BE8C; color: #21170F; }
+.account-sidebar-actions .account-logout { border-color: #d77979; color: #f0a0a0; }
+.account-sidebar-actions .account-logout:hover { background: #d77979; color: #21170F; }
+
 /* Botão do menu: oculto em telas grandes */
 
 .menu-toggle {
@@ -170,7 +216,7 @@
         min-height: 72px;
         flex-wrap: wrap;
         gap: 12px;
-        padding: 14px 20px;
+        padding: 12px 16px;
     }
 
     .header-logo {
@@ -196,6 +242,8 @@
 
     .header-menu.menu-aberto {
         display: flex;
+        max-height: calc(100vh - 72px);
+        overflow-y: auto;
     }
 
     .header-nav {
@@ -212,6 +260,7 @@
 
     .header-actions {
         justify-content: flex-start;
+        width: 100%;
         padding: 4px 12px 8px;
     }
 }

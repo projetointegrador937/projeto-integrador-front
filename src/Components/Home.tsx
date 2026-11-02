@@ -1,7 +1,20 @@
+import { useState } from 'react'
 import './Home.css'
-import { Link } from 'react-router-dom'
+import { useNavigate } from 'react-router-dom'
 
 function Home() {
+  const [servico, setServico] = useState('')
+  const [localizacao, setLocalizacao] = useState('')
+  const navigate = useNavigate()
+
+  function irParaPesquisa(e: React.FormEvent) {
+    e.preventDefault()
+    const params = new URLSearchParams()
+    if (servico.trim()) params.set('busca', servico.trim())
+    if (localizacao.trim()) params.set('cidade', localizacao.trim())
+    navigate(`/pesquisar?${params.toString()}`)
+  }
+
   return (
     <main className="home-page">
       {/* Apresentação principal */}
@@ -31,13 +44,15 @@ function Home() {
             <span>✓ Mais praticidade</span>
           </div>
 
-          <div className="hero-search">
+          <form className="hero-search" onSubmit={irParaPesquisa}>
             <div className="hero-search-field">
               <label htmlFor="servico">O QUE VOCÊ PROCURA?</label>
               <input
                 id="servico"
                 type="text"
                 placeholder="Ex.: Degradê, barba, corte..."
+                value={servico}
+                onChange={(e) => setServico(e.target.value)}
               />
             </div>
 
@@ -47,13 +62,15 @@ function Home() {
                 id="localizacao"
                 type="text"
                 placeholder="Sua cidade ou bairro"
+                value={localizacao}
+                onChange={(e) => setLocalizacao(e.target.value)}
               />
             </div>
 
-            <Link to="/pesquisar" className="hero-search-button">
+            <button type="submit" className="hero-search-button">
               BUSCAR
-            </Link>
-          </div>
+            </button>
+          </form>
         </div>
 
         <div className="hero-visual">

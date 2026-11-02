@@ -4,4 +4,10 @@
     width: 100%;
     min-height: 100vh;
     min-width: 0;
+    overflow-x: hidden;
+}
+
+.app > main {
+    width: 100%;
+    min-width: 0;
 }

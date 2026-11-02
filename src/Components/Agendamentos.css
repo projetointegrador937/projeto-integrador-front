@@ -442,6 +442,10 @@
 /* Responsividade */
 @media (max-width: 700px) {
 
+    .agendamentos-page {
+        padding: 26px 14px;
+    }
+
     .agenda-funcionario {
     width: 100%;
     }
@@ -452,6 +456,7 @@
 
     .reserva-detalhes {
         grid-template-columns: 1fr;
+        padding: 15px;
     }
 
     .reserva-detalhes > div:last-child {
@@ -502,6 +507,30 @@
     }
 
     .cliente-info {
-        min-width: 60%;
+        min-width: 0;
+        flex: 1;
+    }
+
+    .reserva-topo,
+    .reserva-data,
+    .reserva-acoes {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .reserva-card,
+    .historico-card,
+    .calendario-card,
+    .agenda-dia {
+        padding: 16px;
+    }
+
+    .agenda-abas {
+        flex-direction: column;
+    }
+
+    .agenda-abas button,
+    .reserva-acoes button {
+        width: 100%;
     }
 }

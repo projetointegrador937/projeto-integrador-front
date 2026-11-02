@@ -1,19 +1,40 @@
 
 import { useState, type FormEvent } from 'react'
+import { contactService } from '../services/contact.services'
+import Toast, { type ToastType } from './Toast'
 import './Contato.css'
 
 function Contato() {
-  const [mensagemStatus, setMensagemStatus] = useState('')
 
-  function handleSubmit(event: FormEvent<HTMLFormElement>) {
+  const [carregando, setCarregando] = useState(false)
+  const [toast, setToast] = useState<{ message: string; type: ToastType } | null>(null)
+
+  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
+    const form = new FormData(event.currentTarget)
 
-    setMensagemStatus(
-      'Formulário preenchido com sucesso! O envio de mensagens ainda será conectado.'
-    )
+    setCarregando(true)
+    try {
+      await contactService.send({
+        assunto: String(form.get('assunto') ?? ''),
+        nome: String(form.get('nome') ?? ''),
+        sobrenome: String(form.get('sobrenome') ?? ''),
+        email: String(form.get('email') ?? ''),
+        numeroReserva: String(form.get('reserva') ?? '') || undefined,
+        descricao: String(form.get('descricao') ?? ''),
+      })
+      setToast({ message: 'Sua mensagem foi enviada. Nossa equipe entrará em contato.', type: 'success' })
+      event.currentTarget.reset()
+    } catch {
+      setToast({ message: 'Falha ao enviar a mensagem. Verifique sua conexão e tente novamente.', type: 'error' })
+    } finally {
+      setCarregando(false)
+    }
   }
 
   return (
+    <>
+    {toast && <Toast {...toast} onClose={() => setToast(null)} />}
     <main className="contato-page">
       <div className="contato-container">
         <section className="contato-apresentacao">
@@ -125,19 +146,16 @@ function Contato() {
               />
             </div>
 
-            <button type="submit" className="contato-botao">
-              ENVIAR MENSAGEM <span>→</span>
+            <button type="submit" className="contato-botao" disabled={carregando}>
+              {carregando ? 'ENVIANDO...' : 'ENVIAR MENSAGEM'} <span>{carregando ? '…' : '→'}</span>
             </button>
 
-            {mensagemStatus && (
-              <p className="contato-status" role="status">
-                {mensagemStatus}
-              </p>
-            )}
+
           </form>
         </section>
       </div>
     </main>
+    </> 
   )
 }
 

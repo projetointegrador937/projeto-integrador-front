@@ -1,8 +1,8 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
+import { getUserRole, type UserRole } from '../services/auth'
 import './Agendamentos.css'
 
-type TipoUsuario = 'visitante' | 'cliente' | 'funcionario'
 
 type Agendamento = {
   hora: string
@@ -31,7 +31,7 @@ const agendamentosDemo: Record<number, Agendamento[]> = {
 }
 
 function Agendamentos() {
-  const [usuario, setUsuario] = useState<TipoUsuario>('visitante')
+  const usuario: UserRole = getUserRole()
   const [aba, setAba] = useState<'proximos' | 'historico'>('proximos')
   const [mesAtual, setMesAtual] = useState(new Date())
   const [diaSelecionado, setDiaSelecionado] = useState<number | null>(null)
@@ -57,14 +57,6 @@ function Agendamentos() {
 
   return (
     <main className="agendamentos-page">
-      {/* Seletor temporário para testar os três estados */}
-      <div className="demo-perfis">
-        <span>Modo de demonstração:</span>
-        <button onClick={() => setUsuario('visitante')}>Visitante</button>
-        <button onClick={() => setUsuario('cliente')}>Cliente</button>
-        <button onClick={() => setUsuario('funcionario')}>Funcionário</button>
-      </div>
-
       {usuario === 'visitante' && (
         <section className="agenda-login">
           <div className="agenda-login-icone">🔒</div>
@@ -79,7 +71,7 @@ function Agendamentos() {
         </section>
       )}
 
-      {usuario === 'cliente' && (
+      {usuario === 'usuario' && (
         <section className="agenda-cliente">
           <header className="agenda-titulo">
             <h1>Meus Agendamentos</h1>
@@ -174,7 +166,7 @@ function Agendamentos() {
         </section>
       )}
 
-      {usuario === 'funcionario' && (
+      {usuario === 'barbeiro' && (
         <section className="agenda-funcionario">
           <header className="agenda-titulo">
             <h1>Minha agenda</h1>
@@ -251,6 +243,20 @@ function Agendamentos() {
               </article>
             ))}
           </section>
+        </section>
+      )}
+
+      {usuario === 'barbearia' && (
+        <section className="agenda-funcionario">
+          <header className="agenda-titulo">
+            <h1>Gestão da barbearia</h1>
+            <p>Consulte a agenda de todos os barbeiros, cadastre profissionais e organize pausas.</p>
+          </header>
+          <div className="calendario-card">
+            <h2>Agenda de todos os barbeiros</h2>
+            <p>Selecione um barbeiro no perfil da barbearia para consultar seus horários.</p>
+            <Link to="/perfil" className="agenda-botao-principal">Gerenciar barbeiros</Link>
+          </div>
         </section>
       )}
     </main>
