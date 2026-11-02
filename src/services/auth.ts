@@ -1,5 +1,15 @@
 export type UserRole = 'visitante' | 'usuario' | 'barbeiro' | 'barbearia'
 
+const ACCESS_TOKEN_KEYS = ['accessToken', 'token'] as const
+
+function getAccessToken(): string | null {
+  for (const key of ACCESS_TOKEN_KEYS) {
+    const token = localStorage.getItem(key)
+    if (token) return token
+  }
+  return null
+}
+
 function decodePayload(token: string): Record<string, unknown> | null {
   try {
     const payload = token.split('.')[1]
@@ -18,9 +28,9 @@ function normalizeRole(value: unknown): UserRole {
     .replace(/[\u0300-\u036f]/g, '')
     .replace(/[\s_-]/g, '')
 
-  if (['barbeiro', 'barber', 'funcionario', 'employee'].includes(role)) return 'barbeiro'
-  if (['barbearia', 'estabelecimento', 'business', 'owner', 'proprietario', 'barbershop', 'barbershopowner'].includes(role)) return 'barbearia'
-  if (['usuario', 'user', 'cliente', 'client', 'customer'].includes(role)) return 'usuario'
+  if (['2', 'barbeiro', 'barber', 'funcionario', 'employee'].includes(role)) return 'barbeiro'
+  if (['3', 'barbearia', 'estabelecimento', 'business', 'owner', 'proprietario', 'barbershop', 'barbershopowner'].includes(role)) return 'barbearia'
+  if (['1', 'usuario', 'user', 'cliente', 'client', 'customer'].includes(role)) return 'usuario'
   return 'visitante'
 }
 
@@ -29,34 +39,49 @@ function getRoleClaim(claims: Record<string, unknown>): unknown {
     ?? claims.Role
     ?? claims.tipo
     ?? claims.userType
+    ?? claims.UserType
     ?? claims['http://schemas.microsoft.com/ws/2008/06/identity/claims/role']
 
   return Array.isArray(roleClaim) ? roleClaim[0] : roleClaim
 }
 
-export function getUserEmail(): string | undefined {
-  const token = localStorage.getItem('accessToken') || localStorage.getItem('token')
-  if (!token) return undefined
+export function getUserClaims(): Record<string, unknown> | null {
+  const token = getAccessToken()
+  if (!token) return null
   const claims = decodePayload(token)
+  if (!claims) return null
+
+  const expiration = claims.exp
+  if (typeof expiration === 'number' && expiration * 1000 <= Date.now()) {
+    return null
+  }
+
+  return claims
+}
+
+export function getUserEmail(): string | undefined {
+  const claims = getUserClaims()
   const email = claims?.email ?? claims?.['http://schemas.xmlsoap.org/ws/2005/05/identity/claims/emailaddress']
   return typeof email === 'string' && email.trim() ? email.trim() : undefined
 }
 
 export function getUserName(): string {
-  const token = localStorage.getItem('accessToken') || localStorage.getItem('token')
-  if (!token) return 'Usuário'
-  const claims = decodePayload(token)
+  const claims = getUserClaims()
   const name = claims?.name ?? claims?.nome ?? claims?.['http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name']
   return typeof name === 'string' && name.trim() ? name.trim() : 'Usuário'
 }
 
 export function getUserRole(): UserRole {
-  const token = localStorage.getItem('accessToken') || localStorage.getItem('token')
-  if (!token) return 'visitante'
-  const claims = decodePayload(token)
+  const claims = getUserClaims()
   return claims ? normalizeRole(getRoleClaim(claims)) : 'visitante'
 }
 
-export function isAuthenticated() {
+export function getHomeRoute(role: UserRole = getUserRole()): string {
+  if (role === 'barbeiro') return '/agendamentos'
+  if (role === 'barbearia') return '/gestao-barbearia'
+  return '/'
+}
+
+export function isAuthenticated(): boolean {
   return getUserRole() !== 'visitante'
 }

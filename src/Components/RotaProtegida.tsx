@@ -1,5 +1,5 @@
-import { Navigate } from 'react-router-dom'
-import { getUserRole, type UserRole } from '../services/auth'
+import { Navigate, useLocation } from 'react-router-dom'
+import { getHomeRoute, getUserRole, type UserRole } from '../services/auth'
 import type { ReactNode } from 'react'
 
 interface Props {
@@ -8,11 +8,17 @@ interface Props {
   redirecionar?: string
 }
 
-function RotaProtegida({ permitidos, children, redirecionar = '/' }: Props) {
+function RotaProtegida({ permitidos, children, redirecionar }: Props) {
+  const location = useLocation()
   const role = getUserRole()
+
   if (!permitidos.includes(role)) {
-    return <Navigate to={redirecionar} replace />
+    const destino = redirecionar ?? (role === 'visitante' ? '/login' : getHomeRoute(role))
+    if (destino !== location.pathname) {
+      return <Navigate to={destino} replace state={{ from: location.pathname }} />
+    }
   }
+
   return <>{children}</>
 }
 

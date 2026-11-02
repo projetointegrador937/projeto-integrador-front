@@ -11,79 +11,86 @@ import Contato from './Components/Contato'
 import SobreNos from './Components/SobreNos'
 import GestaoBarbearia from './Components/GestaoBarbearia'
 import RotaProtegida from './Components/RotaProtegida'
-import { BrowserRouter, Routes, Route } from 'react-router-dom'
-import { getUserRole } from './services/auth'
+import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom'
+import { getHomeRoute, getUserRole } from './services/auth'
+
+function Inicio() {
+  const role = getUserRole()
+
+  if (role === 'barbeiro') return <Navigate to="/agendamentos" replace />
+  if (role === 'barbearia') return <Navigate to="/gestao-barbearia" replace />
+  return <Home />
+}
+
+function RotaNaoEncontrada() {
+  return <Navigate to={getHomeRoute()} replace />
+}
 
 function App() {
-  const role = getUserRole()
-  const paginaInicial =
-    role === 'barbeiro' ? <Agendamentos /> :
-    role === 'barbearia' ? <GestaoBarbearia /> :
-    <Home />
-
   return (
     <BrowserRouter>
-      <div className='app'>
+      <div className="app">
         <Header />
         <Routes>
-          <Route path='/' element={paginaInicial} />
-          <Route path='/login' element={<Login />} />
+          <Route path="/" element={<Inicio />} />
+          <Route path="/login" element={<Login />} />
           <Route
-            path='/pesquisar'
+            path="/pesquisar"
             element={
-              <RotaProtegida permitidos={['visitante', 'usuario', 'barbearia']} redirecionar='/agendamentos'>
+              <RotaProtegida permitidos={['visitante', 'usuario', 'barbearia']}>
                 <Pesquisa />
               </RotaProtegida>
             }
           />
           <Route
-            path='/perfil'
+            path="/perfil"
             element={
-              <RotaProtegida permitidos={['usuario', 'barbearia']} redirecionar='/agendamentos'>
+              <RotaProtegida permitidos={['usuario', 'barbearia']}>
                 <Perfil />
               </RotaProtegida>
             }
           />
           <Route
-            path='/agendamentos'
+            path="/agendamentos"
             element={
-              <RotaProtegida permitidos={['usuario', 'barbeiro', 'barbearia']} redirecionar='/login'>
+              <RotaProtegida permitidos={['usuario', 'barbeiro', 'barbearia']}>
                 <Agendamentos />
               </RotaProtegida>
             }
           />
           <Route
-            path='/parceiros'
+            path="/parceiros"
             element={
-              <RotaProtegida permitidos={['visitante', 'usuario', 'barbearia']} redirecionar='/agendamentos'>
+              <RotaProtegida permitidos={['visitante', 'usuario', 'barbearia']}>
                 <Parceiros />
               </RotaProtegida>
             }
           />
           <Route
-            path='/contato'
+            path="/contato"
             element={
-              <RotaProtegida permitidos={['visitante', 'usuario', 'barbearia']} redirecionar='/agendamentos'>
+              <RotaProtegida permitidos={['visitante', 'usuario', 'barbearia']}>
                 <Contato />
               </RotaProtegida>
             }
           />
           <Route
-            path='/sobre-nos'
+            path="/sobre-nos"
             element={
-              <RotaProtegida permitidos={['visitante', 'usuario', 'barbearia']} redirecionar='/agendamentos'>
+              <RotaProtegida permitidos={['visitante', 'usuario', 'barbearia']}>
                 <SobreNos />
               </RotaProtegida>
             }
           />
           <Route
-            path='/gestao-barbearia'
+            path="/gestao-barbearia"
             element={
-              <RotaProtegida permitidos={['barbearia']} redirecionar='/agendamentos'>
+              <RotaProtegida permitidos={['barbearia']}>
                 <GestaoBarbearia />
               </RotaProtegida>
             }
           />
+          <Route path="*" element={<RotaNaoEncontrada />} />
         </Routes>
         <Footer />
       </div>

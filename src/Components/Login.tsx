@@ -1,7 +1,7 @@
 import { useState, type FormEvent } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { authService } from '../services/auth.services'
-import { getUserRole } from '../services/auth'
+import { getHomeRoute, getUserRole } from '../services/auth'
 
 import Toast, { type ToastType } from './Toast'
 import './Login.css'
@@ -59,7 +59,7 @@ function Login(){
                             localStorage.setItem('accessToken', response.data.accessToken)
                             localStorage.setItem('refreshToken', response.data.refreshToken)
                             setToast({ message: 'Login realizado com sucesso!', type: 'success' })
-                            navigate(getUserRole() === 'barbearia' ? '/gestao-barbearia' : '/')
+                            navigate(getHomeRoute(getUserRole()), { replace: true })
                         }
                     } catch {
                         const mensagem = modoCadastro
