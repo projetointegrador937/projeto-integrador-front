@@ -1,6 +1,10 @@
 
 import './Perfil.css'
-import { useState, type ChangeEvent, type FormEvent } from 'react'
+import { useEffect, useState, type ChangeEvent, type FormEvent } from 'react'
+import { getUserEmail, getUserName, getUserRole } from '../services/auth'
+import { authService } from '../services/auth.services'
+import Toast, { type ToastType } from './Toast'
+import { viaCepService } from '../services/viacep.services'
 
 type TipoConta = 'cliente' | 'empresa'
 type AbaEmpresa = 'dados' | 'funcionarios'
@@ -58,15 +62,56 @@ const empresaInicial: Empresa = {
 }
 
 function Perfil() {
-  const [tipoConta, setTipoConta] = useState<TipoConta>('cliente')
+  const role = getUserRole()
+  const donoBarbearia = role === 'barbearia'
+  const [tipoConta, setTipoConta] = useState<TipoConta>(donoBarbearia ? 'cliente' : 'cliente')
+  const [nomeUsuario, setNomeUsuario] = useState(getUserName())
+  const emailUsuario = getUserEmail() ?? ''
+  const partesNome = nomeUsuario.trim().split(/\s+/)
+  const primeiroNome = partesNome[0] || 'Usuário'
+  const sobrenome = partesNome.slice(1).join(' ') || 'Não informado'
+  const iniciais = partesNome.slice(0, 2).map((parte) => parte[0]).join('').toUpperCase()
   const [abaEmpresa, setAbaEmpresa] = useState<AbaEmpresa>('dados')
   const [mensagem, setMensagem] = useState('')
+  const [carregando, setCarregando] = useState(false)
+  const [toast, setToast] = useState<{ message: string; type: ToastType } | null>(null)
 
   const [endereco, setEndereco] = useState<Endereco>(enderecoInicial)
+  const [telefone, setTelefone] = useState('')
+  const [consultandoCep, setConsultandoCep] = useState(false)
   const [empresa, setEmpresa] = useState<Empresa>(empresaInicial)
 
   const [funcionarios, setFuncionarios] = useState<Funcionario[]>([])
   const [mostrarFormulario, setMostrarFormulario] = useState(false)
+
+  useEffect(() => {
+    let ativo = true
+
+    async function carregarUsuario() {
+      try {
+        const { data } = await authService.getCurrentUser()
+        if (!ativo) return
+        setNomeUsuario(data.nome)
+        if (data.endereco) {
+          setEndereco({
+            rua: data.endereco.rua,
+            numero: data.endereco.numero,
+            complemento: data.endereco.complemento ?? '',
+            bairro: data.endereco.bairro,
+            cep: data.endereco.cep,
+            cidade: data.endereco.cidade,
+            estado: data.endereco.estado,
+          })
+        }
+        setTelefone(data.contato ?? '')
+      } catch {
+        setToast({ message: 'Não foi possível carregar os dados do seu perfil.', type: 'error' })
+      }
+    }
+
+    void carregarUsuario()
+    return () => { ativo = false }
+  }, [])
 
   const [novoFuncionario, setNovoFuncionario] = useState({
     nome: '',
@@ -95,6 +140,26 @@ function Perfil() {
     }))
   }
 
+  async function handleCepBlur() {
+    const cep = endereco.cep.replace(/\D/g, '')
+    if (cep.length !== 8) return
+
+    setConsultandoCep(true)
+    try {
+      const dados = await viaCepService.findByCep(cep)
+      setEndereco((anterior) => ({
+        ...anterior,
+        ...dados,
+        complemento: dados.complemento ?? anterior.complemento,
+      }))
+      setToast({ message: 'Endereço preenchido automaticamente pelo CEP.', type: 'success' })
+    } catch {
+      setToast({ message: 'Não foi possível localizar esse CEP.', type: 'error' })
+    } finally {
+      setConsultandoCep(false)
+    }
+  }
+
   function handleFuncionarioChange(
     event: ChangeEvent<HTMLInputElement | HTMLSelectElement>
   ) {
@@ -106,9 +171,32 @@ function Perfil() {
     }))
   }
 
-  function handleSalvarCliente() {
-    console.log('Endereço atualizado:', endereco)
-    setMensagem('Alterações do perfil salvas nesta sessão.')
+  async function handleSalvarCliente() {
+    setCarregando(true)
+    try {
+      await authService.updateUser({
+        nome: nomeUsuario,
+        email: emailUsuario,
+        telefone: telefone || null,
+        profilePictureUrl: null,
+        ...(donoBarbearia ? {} : { endereco: {
+          rua: endereco.rua,
+          numero: endereco.numero,
+          complemento: endereco.complemento || null,
+          bairro: endereco.bairro,
+          cep: endereco.cep,
+          cidade: endereco.cidade,
+          estado: endereco.estado,
+          latitude: null,
+          longitude: null,
+        } }),
+      })
+      setToast({ message: 'Dados do usuário atualizados com sucesso.', type: 'success' })
+    } catch {
+      setToast({ message: 'Não foi possível atualizar seus dados. Tente novamente.', type: 'error' })
+    } finally {
+      setCarregando(false)
+    }
   }
 
   function handleSalvarEmpresa(event: FormEvent<HTMLFormElement>) {
@@ -157,9 +245,11 @@ function Perfil() {
   }
 
   return (
+    <>
+      {toast && <Toast {...toast} onClose={() => setToast(null)} />}
     <main className="perfil-page">
       <div className="perfil-container">
-        <div className="perfil-tipo-conta">
+        {!donoBarbearia && <div className="perfil-tipo-conta">
           <span>Visualização demonstrativa:</span>
 
           <div className="perfil-tipo-botoes">
@@ -185,13 +275,26 @@ function Perfil() {
               <span>Empresa</span>
             </button>
           </div>
-        </div>
+        </div>}
 
-        {tipoConta === 'cliente' ? (
+        {donoBarbearia ? (
+          <section className="perfil-card">
+            <div className="perfil-header">
+              <div className="perfil-avatar"><span>{iniciais}</span></div>
+              <div><h1>Editar usuário</h1><p>Atualize seus dados pessoais</p></div>
+            </div>
+            <div className="perfil-secao"><h2>Dados pessoais</h2><div className="perfil-grid">
+              <div className="perfil-campo perfil-campo-completo"><label htmlFor="dono-nome">Nome</label><input id="dono-nome" className="perfil-input" value={nomeUsuario} onChange={(event) => setNomeUsuario(event.target.value)} /></div>
+              <div className="perfil-campo perfil-campo-completo"><label>E-mail</label><div className="perfil-valor">{emailUsuario}</div></div>
+              <div className="perfil-campo perfil-campo-completo"><label htmlFor="dono-telefone">Telefone</label><input id="dono-telefone" className="perfil-input" value={telefone} onChange={(event) => setTelefone(event.target.value)} /></div>
+            </div></div>
+            <div className="perfil-acoes"><button type="button" className="perfil-salvar" onClick={handleSalvarCliente} disabled={carregando}>{carregando ? 'Salvando...' : 'Salvar alterações'}</button></div>
+          </section>
+        ) : tipoConta === 'cliente' ? (
           <section className="perfil-card">
             <div className="perfil-header">
               <div className="perfil-avatar">
-                <span>JS</span>
+                <span>{iniciais}</span>
               </div>
 
               <div>
@@ -206,17 +309,30 @@ function Perfil() {
               <div className="perfil-grid">
                 <div className="perfil-campo">
                   <label>Nome</label>
-                  <div className="perfil-valor">João</div>
+                  <div className="perfil-valor">{primeiroNome}</div>
                 </div>
 
                 <div className="perfil-campo">
                   <label>Sobrenome</label>
-                  <div className="perfil-valor">Silva</div>
+                  <div className="perfil-valor">{sobrenome}</div>
                 </div>
 
                 <div className="perfil-campo perfil-campo-completo">
                   <label>Data de nascimento</label>
                   <div className="perfil-valor">Não informada</div>
+                </div>
+
+                <div className="perfil-campo perfil-campo-completo">
+                  <label htmlFor="cliente-telefone">Telefone</label>
+                  <input
+                    id="cliente-telefone"
+                    name="telefone"
+                    type="tel"
+                    className="perfil-input"
+                    value={telefone}
+                    onChange={(event) => setTelefone(event.target.value)}
+                    placeholder="(00) 00000-0000"
+                  />
                 </div>
               </div>
             </div>
@@ -225,6 +341,21 @@ function Perfil() {
               <h2>Endereço</h2>
 
               <div className="perfil-grid">
+                <div className="perfil-campo">
+                  <label htmlFor="cliente-cep">CEP</label>
+                  <input
+                    id="cliente-cep"
+                    name="cep"
+                    className="perfil-input"
+                    value={endereco.cep}
+                    onChange={handleEnderecoChange}
+                    onBlur={handleCepBlur}
+                    placeholder="CEP"
+                    inputMode="numeric"
+                    disabled={consultandoCep}
+                  />
+                </div>
+
                 <div className="perfil-campo perfil-campo-completo">
                   <label htmlFor="cliente-rua">Rua / Avenida</label>
                   <input
@@ -273,17 +404,6 @@ function Perfil() {
                   />
                 </div>
 
-                <div className="perfil-campo">
-                  <label htmlFor="cliente-cep">CEP</label>
-                  <input
-                    id="cliente-cep"
-                    name="cep"
-                    className="perfil-input"
-                    value={endereco.cep}
-                    onChange={handleEnderecoChange}
-                    placeholder="CEP"
-                  />
-                </div>
 
                 <div className="perfil-campo">
                   <label htmlFor="cliente-cidade">Cidade</label>
@@ -316,8 +436,9 @@ function Perfil() {
                 type="button"
                 className="perfil-salvar"
                 onClick={handleSalvarCliente}
+                disabled={carregando}
               >
-                Salvar alterações
+                {carregando ? 'Salvando...' : 'Salvar alterações'}
               </button>
             </div>
 
@@ -745,6 +866,7 @@ function Perfil() {
         )}
       </div>
     </main>
+    </>
   )
 }
 

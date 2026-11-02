@@ -1,15 +1,32 @@
 
 import { useState } from 'react'
+import { getUserRole } from '../services/auth'
+import { authService } from '../services/auth.services'
 import { Link, useNavigate } from 'react-router-dom'
 import './Header.css'
-import icon from '../assets/Icon.png'
+
 
 function Header() {
   const navigate = useNavigate()
   const [menuAberto, setMenuAberto] = useState(false)
+  const [contaAberta, setContaAberta] = useState(false)
+  const role = getUserRole()
 
   function fecharMenu() {
     setMenuAberto(false)
+  }
+
+  async function sair() {
+    const refreshToken = localStorage.getItem('refreshToken')
+    try {
+      if (refreshToken) await authService.logout({ refreshToken })
+    } finally {
+      localStorage.removeItem('accessToken')
+      localStorage.removeItem('refreshToken')
+      localStorage.removeItem('token')
+      setContaAberta(false)
+      navigate('/login')
+    }
   }
 
   return (
@@ -42,12 +59,20 @@ function Header() {
           className={`header-menu ${menuAberto ? 'menu-aberto' : ''}`}
         >
           <div className="header-nav">
-            <Link to="/" onClick={fecharMenu}>HOME</Link>
-            <Link to="/pesquisar" onClick={fecharMenu}>PESQUISAR</Link>
-            <Link to="/parceiros" onClick={fecharMenu}>PARCEIROS</Link>
-            <Link to="/agendamentos" onClick={fecharMenu}>
-              AGENDAMENTOS
-            </Link>
+            {role !== 'barbearia' && role !== 'barbeiro' && <>
+              <Link to="/" onClick={fecharMenu}>HOME</Link>
+              <Link to="/pesquisar" onClick={fecharMenu}>PESQUISAR</Link>
+              <Link to="/parceiros" onClick={fecharMenu}>PARCEIROS</Link>
+            </>}
+            {role === 'usuario' && (
+              <Link to="/agendamentos" onClick={fecharMenu}>AGENDAR / MEUS AGENDAMENTOS</Link>
+            )}
+            {role === 'barbeiro' && (
+              <Link to="/agendamentos" onClick={fecharMenu}>MINHA AGENDA / PAUSAS</Link>
+            )}
+            {role === 'barbearia' && (
+              <Link to="/gestao-barbearia" onClick={fecharMenu}>GESTÃO DA BARBEARIA</Link>
+            )}
           </div>
 
           <div className="header-actions">
@@ -56,23 +81,29 @@ function Header() {
               className="login-button"
               onClick={() => {
                 fecharMenu()
-                navigate('/login')
+                if (role === 'visitante') navigate('/login')
+                else setContaAberta(true)
               }}
             >
-              Login
+              {role === 'visitante' ? 'Login' : 'Minha conta'}
             </button>
 
-            <Link
-              to="/perfil"
-              className="profile-icon"
-              aria-label="Acessar perfil"
-              onClick={fecharMenu}
-            >
-              <img src={icon} alt="" />
-            </Link>
           </div>
         </div>
       </nav>
+
+      {contaAberta && <>
+        <button type="button" className="account-overlay" aria-label="Fechar conta" onClick={() => setContaAberta(false)} />
+        <aside className="account-sidebar" aria-label="Minha conta">
+          <div className="account-sidebar-header"><h2>Minha conta</h2><button type="button" onClick={() => setContaAberta(false)} aria-label="Fechar">×</button></div>
+          <div className="account-sidebar-actions">
+            {role !== 'barbeiro' && (
+              <button type="button" onClick={() => { setContaAberta(false); navigate('/perfil') }}>Editar usuário</button>
+            )}
+            <button type="button" className="account-logout" onClick={() => void sair()}>Sair</button>
+          </div>
+        </aside>
+      </>}
     </header>
   )
 }
