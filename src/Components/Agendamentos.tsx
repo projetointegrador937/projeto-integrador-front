@@ -1,33 +1,17 @@
-import { useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { getUserRole, type UserRole } from '../services/auth'
+import { appointmentService } from '../services/appointment.services'
+import type { Appointment } from '../interfaces/api'
 import './Agendamentos.css'
 
-
-type Agendamento = {
-  hora: string
-  cliente: string
-  servico: string
-  status: string
+function formatDate(value?: string) {
+  if (!value) return 'Data não informada'
+  return new Date(value).toLocaleString('pt-BR', { dateStyle: 'full', timeStyle: 'short' })
 }
 
-const agendamentosDemo: Record<number, Agendamento[]> = {
-  5: [
-    { hora: '09:00', cliente: 'Mariana Costa', servico: 'Corte feminino', status: 'Confirmado' },
-    { hora: '10:30', cliente: 'Pedro Henrique', servico: 'Corte clássico', status: 'Confirmado' },
-  ],
-  12: [
-    { hora: '13:00', cliente: 'Lucas Almeida', servico: 'Barba completa', status: 'Confirmado' },
-    { hora: '15:00', cliente: 'Ana Clara', servico: 'Corte e finalização', status: 'Pendente' },
-  ],
-  18: [
-    { hora: '10:00', cliente: 'Rafael Santos', servico: 'Degradê', status: 'Confirmado' },
-  ],
-  24: [
-    { hora: '09:30', cliente: 'Gabriel Oliveira', servico: 'Corte clássico', status: 'Confirmado' },
-    { hora: '11:00', cliente: 'Bruno Lima', servico: 'Corte e barba', status: 'Confirmado' },
-    { hora: '14:30', cliente: 'Felipe Souza', servico: 'Barba', status: 'Pendente' },
-  ],
+function formatMoney(value?: number) {
+  return typeof value === 'number' ? value.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }) : 'Valor não informado'
 }
 
 function Agendamentos() {
@@ -35,232 +19,60 @@ function Agendamentos() {
   const [aba, setAba] = useState<'proximos' | 'historico'>('proximos')
   const [mesAtual, setMesAtual] = useState(new Date())
   const [diaSelecionado, setDiaSelecionado] = useState<number | null>(null)
+  const [agendamentos, setAgendamentos] = useState<Appointment[]>([])
+  const [carregando, setCarregando] = useState(false)
+  const [erro, setErro] = useState('')
 
   const ano = mesAtual.getFullYear()
   const mes = mesAtual.getMonth()
   const primeiroDia = new Date(ano, mes, 1).getDay()
   const diasNoMes = new Date(ano, mes + 1, 0).getDate()
-  const nomesMeses = [
-    'Janeiro', 'Fevereiro', 'Março', 'Abril',
-    'Maio', 'Junho', 'Julho', 'Agosto',
-    'Setembro', 'Outubro', 'Novembro', 'Dezembro',
-  ]
+  const nomesMeses = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro']
+
+  useEffect(() => {
+    if (usuario === 'visitante' || usuario === 'barbearia') return
+    let ativo = true
+    setCarregando(true)
+    setErro('')
+    const request = usuario === 'barbeiro'
+      ? appointmentService.monthlyAgenda({ mes: mes + 1, ano })
+      : appointmentService.mine()
+    request.then((response) => {
+      if (ativo) setAgendamentos(response.data ?? [])
+    }).catch(() => {
+      if (ativo) setErro('Não foi possível carregar os agendamentos. Tente novamente.')
+    }).finally(() => {
+      if (ativo) setCarregando(false)
+    })
+    return () => { ativo = false }
+  }, [usuario, mes, ano])
+
+  const proximos = useMemo(() => agendamentos.filter((item) => new Date(item.dataHora) >= new Date()), [agendamentos])
+  const historico = useMemo(() => agendamentos.filter((item) => new Date(item.dataHora) < new Date()), [agendamentos])
+  const reservas = aba === 'proximos' ? proximos : historico
+  const doDia = diaSelecionado ? agendamentos.filter((item) => {
+    const data = new Date(item.dataHora)
+    return data.getFullYear() === ano && data.getMonth() === mes && data.getDate() === diaSelecionado
+  }) : []
 
   function mudarMes(direcao: number) {
     setMesAtual(new Date(ano, mes + direcao, 1))
     setDiaSelecionado(null)
   }
 
-  const reservasDoDia = diaSelecionado
-    ? agendamentosDemo[diaSelecionado] ?? []
-    : []
+  if (usuario === 'visitante') return <main className="agendamentos-page"><section className="agenda-login"><div className="agenda-login-icone">🔒</div><h1>Seus agendamentos</h1><p>Entre na sua conta para consultar seus agendamentos e histórico.</p><Link to="/login" className="agenda-botao-principal">Entrar na minha conta</Link></section></main>
+  if (usuario === 'barbearia') return <main className="agendamentos-page"><section className="agenda-funcionario"><header className="agenda-titulo"><h1>Gestão da barbearia</h1><p>Consulte os agendamentos cadastrados para sua equipe.</p></header><div className="calendario-card"><h2>Agenda da equipe</h2><p>Acesse a gestão para visualizar barbeiros, serviços e agendamentos.</p><Link to="/gestao-barbearia" className="agenda-botao-principal">Abrir gestão</Link></div></section></main>
 
-  return (
-    <main className="agendamentos-page">
-      {usuario === 'visitante' && (
-        <section className="agenda-login">
-          <div className="agenda-login-icone">🔒</div>
-          <h1>Seus agendamentos</h1>
-          <p>
-            Entre na sua conta para consultar seus agendamentos,
-            acompanhar suas reservas e visualizar seu histórico.
-          </p>
-          <Link to="/login" className="agenda-botao-principal">
-            Entrar na minha conta
-          </Link>
-        </section>
-      )}
-
-      {usuario === 'usuario' && (
-        <section className="agenda-cliente">
-          <header className="agenda-titulo">
-            <h1>Meus Agendamentos</h1>
-            <p>
-              Controle suas reservas agendadas e consulte
-              seu histórico de atendimentos.
-            </p>
-          </header>
-
-          <div className="agenda-abas">
-            <button
-              className={aba === 'proximos' ? 'ativa' : ''}
-              onClick={() => setAba('proximos')}
-            >
-              Próximos agendamentos
-            </button>
-            <button
-              className={aba === 'historico' ? 'ativa' : ''}
-              onClick={() => setAba('historico')}
-            >
-              Histórico completo
-            </button>
-          </div>
-
-          {aba === 'proximos' ? (
-            <article className="reserva-card">
-              <div className="reserva-topo">
-                <div>
-                  <span className="agenda-etiqueta">UNIDADE PRINCIPAL</span>
-                  <h2>Barbearia Dourada</h2>
-                  <p>⌖ Alameda das Jatobás, 412 – Jardins, SP</p>
-                </div>
-                <span className="reserva-status">● Confirmado</span>
-              </div>
-
-              <div className="reserva-detalhes">
-                <div>
-                  <span className="agenda-etiqueta">ESPECIALISTA</span>
-                  <strong>Carlos Eduardo</strong>
-                  <small>Mestre Barbeiro</small>
-                </div>
-                <div>
-                  <span className="agenda-etiqueta">TRATAMENTO</span>
-                  <strong>Corte Clássico & Barba</strong>
-                  <small>Duração: 60 minutos</small>
-                </div>
-                <div>
-                  <span className="agenda-etiqueta">PAGAMENTO</span>
-                  <strong className="reserva-preco">R$ 110,00</strong>
-                  <small>Pagamento presencial</small>
-                </div>
-              </div>
-
-              <div className="reserva-data">
-                <div>
-                  <span className="agenda-etiqueta">DATA RESERVADA</span>
-                  <strong>Quinta-feira, 24 de Outubro às 16:00</strong>
-                </div>
-                <span>Lembrete via WhatsApp ativado</span>
-              </div>
-
-              <div className="reserva-acoes">
-                <button onClick={() => alert('Integração de calendário será implementada depois.')}>
-                  Adicionar à agenda
-                </button>
-                <button onClick={() => alert('A remarcação será conectada ao sistema de reservas.')}>
-                  Remarcar horário
-                </button>
-                <button className="cancelar" onClick={() => alert('O cancelamento será conectado ao sistema de reservas.')}>
-                  Cancelar reserva
-                </button>
-              </div>
-            </article>
-          ) : (
-            <div className="historico-lista">
-              {[
-                ['Corte Executivo & Tonalização', '18 de Setembro, 2024', 'R$ 95,00'],
-                ['Barboterapia com Toalha Quente & Argila', '22 de Agosto, 2024', 'R$ 70,00'],
-                ['Corte Clássico & Lavagem Terapêutica', '14 de Julho, 2024', 'R$ 80,00'],
-              ].map(([servico, data, preco]) => (
-                <article className="historico-card" key={servico}>
-                  <div>
-                    <h3>{servico}</h3>
-                    <p>Barbearia Dourada · Prof. Carlos Eduardo</p>
-                    <small>{data} · {preco}</small>
-                  </div>
-                  <span className="historico-status">Concluído</span>
-                </article>
-              ))}
-            </div>
-          )}
-        </section>
-      )}
-
-      {usuario === 'barbeiro' && (
-        <section className="agenda-funcionario">
-          <header className="agenda-titulo">
-            <h1>Minha agenda</h1>
-            <p>Visualize seus atendimentos e organize seus horários.</p>
-          </header>
-
-          <div className="calendario-card">
-            <div className="calendario-cabecalho">
-              <button onClick={() => mudarMes(-1)} aria-label="Mês anterior">
-                ←
-              </button>
-              <h2>{nomesMeses[mes]} {ano}</h2>
-              <button onClick={() => mudarMes(1)} aria-label="Próximo mês">
-                →
-              </button>
-            </div>
-
-            <div className="calendario-grade">
-              {['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'].map((dia) => (
-                <div className="calendario-semana" key={dia}>{dia}</div>
-              ))}
-
-              {Array.from({ length: primeiroDia }, (_, i) => (
-                <div className="calendario-vazio" key={`vazio-${i}`} />
-              ))}
-
-              {Array.from({ length: diasNoMes }, (_, i) => {
-                const dia = i + 1
-                const ocupado = Boolean(agendamentosDemo[dia])
-                return (
-                  <button
-                    key={dia}
-                    className={[
-                      'calendario-dia',
-                      ocupado ? 'ocupado' : '',
-                      diaSelecionado === dia ? 'selecionado' : '',
-                    ].join(' ')}
-                    onClick={() => setDiaSelecionado(dia)}
-                  >
-                    <span>{dia}</span>
-                    {ocupado && <i />}
-                  </button>
-                )
-              })}
-            </div>
-
-            <div className="calendario-legenda">
-              <span><i /> Dias com agendamentos</span>
-              <span>Selecione um dia para ver os clientes</span>
-            </div>
-          </div>
-
-          <section className="agenda-dia">
-            <h2>
-              {diaSelecionado
-                ? `Atendimentos de ${diaSelecionado} de ${nomesMeses[mes]}`
-                : 'Selecione um dia no calendário'}
-            </h2>
-
-            {diaSelecionado && reservasDoDia.length === 0 && (
-              <p className="agenda-vazia">Nenhum atendimento cadastrado para este dia.</p>
-            )}
-
-            {reservasDoDia.map((reserva) => (
-              <article className="cliente-horario" key={`${reserva.hora}-${reserva.cliente}`}>
-                <strong className="cliente-hora">{reserva.hora}</strong>
-                <div className="cliente-info">
-                  <h3>{reserva.cliente}</h3>
-                  <p>{reserva.servico}</p>
-                </div>
-                <span className={`cliente-status ${reserva.status === 'Pendente' ? 'pendente' : ''}`}>
-                  {reserva.status}
-                </span>
-              </article>
-            ))}
-          </section>
-        </section>
-      )}
-
-      {usuario === 'barbearia' && (
-        <section className="agenda-funcionario">
-          <header className="agenda-titulo">
-            <h1>Gestão da barbearia</h1>
-            <p>Consulte a agenda de todos os barbeiros, cadastre profissionais e organize pausas.</p>
-          </header>
-          <div className="calendario-card">
-            <h2>Agenda de todos os barbeiros</h2>
-            <p>Selecione um barbeiro no perfil da barbearia para consultar seus horários.</p>
-            <Link to="/perfil" className="agenda-botao-principal">Gerenciar barbeiros</Link>
-          </div>
-        </section>
-      )}
-    </main>
-  )
+  return <main className="agendamentos-page">
+    <section className={usuario === 'usuario' ? 'agenda-cliente' : 'agenda-funcionario'}>
+      <header className="agenda-titulo"><h1>{usuario === 'barbeiro' ? 'Minha agenda' : 'Meus agendamentos'}</h1><p>{usuario === 'barbeiro' ? 'Visualize seus atendimentos cadastrados.' : 'Controle suas reservas e consulte seu histórico.'}</p></header>
+      {erro && <p className="agenda-vazia">{erro}</p>}
+      {carregando && <p className="agenda-vazia">Carregando agendamentos...</p>}
+      {usuario === 'usuario' && <div className="agenda-abas"><button className={aba === 'proximos' ? 'ativa' : ''} onClick={() => setAba('proximos')}>Próximos agendamentos</button><button className={aba === 'historico' ? 'ativa' : ''} onClick={() => setAba('historico')}>Histórico completo</button></div>}
+      {usuario === 'barbeiro' && <div className="calendario-card"><div className="calendario-cabecalho"><button onClick={() => mudarMes(-1)}>←</button><h2>{nomesMeses[mes]} {ano}</h2><button onClick={() => mudarMes(1)}>→</button></div><div className="calendario-grade">{['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'].map((dia) => <div className="calendario-semana" key={dia}>{dia}</div>)}{Array.from({ length: primeiroDia }, (_, i) => <div className="calendario-vazio" key={`vazio-${i}`} />)}{Array.from({ length: diasNoMes }, (_, i) => { const dia = i + 1; const ocupado = agendamentos.some((item) => { const data = new Date(item.dataHora); return data.getFullYear() === ano && data.getMonth() === mes && data.getDate() === dia }); return <button key={dia} className={`calendario-dia ${ocupado ? 'ocupado' : ''} ${diaSelecionado === dia ? 'selecionado' : ''}`} onClick={() => setDiaSelecionado(dia)}><span>{dia}</span>{ocupado && <i />}</button> })}</div></div>}
+      {usuario === 'barbeiro' ? <section className="agenda-dia"><h2>{diaSelecionado ? `Atendimentos de ${diaSelecionado} de ${nomesMeses[mes]}` : 'Selecione um dia no calendário'}</h2>{diaSelecionado && !doDia.length && <p className="agenda-vazia">Nenhum atendimento cadastrado para este dia.</p>}{doDia.map((item) => <article className="cliente-horario" key={item.id}><strong className="cliente-hora">{new Date(item.dataHora).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}</strong><div className="cliente-info"><h3>Cliente #{item.clienteId}</h3><p>{item.nomeServico}</p></div><span className="cliente-status">{item.status}</span></article>)}</section> : <div className="historico-lista">{!carregando && !reservas.length && <p className="agenda-vazia">Nenhum agendamento encontrado.</p>}{reservas.map((item) => <article className="historico-card" key={item.id}><div><h3>{item.nomeServico}</h3><p>{item.nomeEstabelecimento} · {item.nomeFuncionario}</p><small>{formatDate(item.dataHora)} · {formatMoney(item.valorTotal)}</small></div><span className="historico-status">{item.status}</span></article>)}</div>}
+    </section>
+  </main>
 }
 
 export default Agendamentos

@@ -2,7 +2,7 @@ import api from './api';
 import { authService } from './auth.services';
 import type { CreateBarberPayload, Employee, EmployeeRequest } from '../interfaces/api';
 
-const establishmentBase = '/api/establishiment';
+const establishmentBase = '/api/v1/establishments';
 
 /** Operações disponíveis para funcionários no contrato atual da API. */
 export const employeeService = {

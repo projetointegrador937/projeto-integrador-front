@@ -55,7 +55,7 @@ function App() {
           <Route
             path='/parceiros'
             element={
-              <RotaProtegida permitidos={['visitante', 'usuario', 'barbearia']} redirecionar='/agendamentos'>
+              <RotaProtegida permitidos={['visitante', 'barbearia']} redirecionar='/agendamentos'>
                 <Parceiros />
               </RotaProtegida>
             }
