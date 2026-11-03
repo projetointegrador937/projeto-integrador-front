@@ -5,7 +5,7 @@ import { establishmentService } from '../services/establishment.services'
 import { reportService } from '../services/report.services'
 import { employeeService } from '../services/employee.services'
 
-import { serviceService } from '../services/service.services'
+
 import { viaCepService } from '../services/viacep.services'
 import type { Appointment, BusinessHoursInput, CreateBarberPayload, CreateBarberShopPayload, Employee, Establishment, Service } from '../interfaces/api'
 import './GestaoBarbearia.css'
@@ -226,7 +226,7 @@ function GestaoBarbearia() {
         setProdutos((anteriores) => anteriores.map((produto) => produto.id === produtoEditando ? { ...produto, ...payload } : produto))
         setMensagem('Produto atualizado nesta tela. O contrato atual da API não documenta atualização de serviços.')
       } else {
-        const response = await serviceService.create(payload)
+        const response = await establishmentService.createService(estabelecimento.id, payload)
         setProdutos((anteriores) => [...anteriores, response.data])
         setMensagem('Produto criado com sucesso.')
       }

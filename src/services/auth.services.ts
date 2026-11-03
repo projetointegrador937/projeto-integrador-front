@@ -5,11 +5,11 @@ export const authService = {
   login: (payload: LoginRequest) => api.post<LoginResponse>('/api/v1/auth/login', payload),
   logout: (payload: LogoutRequest) => api.post<void>('/api/v1/auth/logout', payload),
   refresh: (payload: RefreshTokenPayload) => api.post<LoginResponse>('/api/v1/auth/refresh', payload),
-  createUser: (payload: CreateUserRequest) => api.post<User>('/api/users/create', payload),
-  createBarbershopOwner: (payload: CreateBarbershopOwnerRequest) => api.post<User>('/api/users/create-barbershop-owner', payload),
+  createUser: (payload: CreateUserRequest) => api.post<User>('/api/v1/users/create', payload),
+  createBarbershopOwner: (payload: CreateBarbershopOwnerRequest) => api.post<User>('/api/v1/users/create-barbershop-owner', payload),
 
-  createBarberUser: (payload: CreateBarberUserPayload) => api.post<UserSummaryDto>('/api/users/create-barber', payload),
+  createBarberUser: (payload: CreateBarberUserPayload) => api.post<UserSummaryDto>('/api/v1/users/create-barber', payload),
 
-  updateUser: (payload: UpdateUserRequest) => api.put<User>('/api/users/update', payload),
-  getCurrentUser: () => api.get<UsuarioResumo>('/api/users/me'),
+  updateUser: (payload: UpdateUserRequest) => api.put<User>('/api/v1/users/update', payload),
+  getCurrentUser: () => api.get<UsuarioResumo>('/api/v1/users/me'),
 };

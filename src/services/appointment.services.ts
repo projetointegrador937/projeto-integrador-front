@@ -12,5 +12,5 @@ export const appointmentService = {
 };
 
 export const availabilityService = {
-  legacy: (params?: Record<string, unknown>) => api.get<Availability[]>('/api/Appointment/get-barbers-schedule', { params }),
+  legacy: (params?: Record<string, unknown>) => api.get<Availability[]>('/api/v1/agendamentos/disponibilidade', { params }),
 };
