@@ -39,7 +39,7 @@ describe('authService', () => {
 
     await authService.createUser(payload);
 
-    expect(postMock).toHaveBeenCalledWith('/api/user/create-user', payload);
+    expect(postMock).toHaveBeenCalledWith('/api/users/create', payload);
   });
 
 
