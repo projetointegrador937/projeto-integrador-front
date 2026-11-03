@@ -1,6 +1,16 @@
 import axios, { type AxiosError, type InternalAxiosRequestConfig } from 'axios';
 
-const base = import.meta.env.VITE_API_URL_DEV || 'http://localhost:8080';
+const configuredBaseUrl = import.meta.env.VITE_API_URL?.trim();
+
+if (!configuredBaseUrl && import.meta.env.PROD) {
+  throw new Error('VITE_API_URL não foi configurada no ambiente de produção.');
+}
+
+const base = (configuredBaseUrl || 'http://localhost:8080').replace(/\/+$/, '');
+
+if (!/^https?:\/\//i.test(base)) {
+  throw new Error('VITE_API_URL inválida. Use https://api-navalhacorte.ddns.net.');
+}
 
 const api = axios.create({
   baseURL: base,
