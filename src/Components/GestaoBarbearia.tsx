@@ -50,7 +50,7 @@ function GestaoBarbearia() {
   const [produtoEditando, setProdutoEditando] = useState<string | null>(null)
   const [produtoForm, setProdutoForm] = useState({ nome: '', descricao: '', preco: '', duracaoMinutos: '' })
   const [barbeiroFormAberto, setBarbeiroFormAberto] = useState(false)
-  const [barbeiroForm, setBarbeiroForm] = useState({ name: '', email: '', password: '', phone: '', profilePictureUrl: '', commission: '0' })
+  const [barbeiroForm, setBarbeiroForm] = useState({ name: '', email: '', password: '', phone: '', profilePictureUrl: '' })
   const [consultandoCep, setConsultandoCep] = useState(false)
   const [horarios, setHorarios] = useState([
     { dia: 'Domingo', inicio: '09:00', fim: '18:00' },
@@ -175,7 +175,6 @@ function GestaoBarbearia() {
         cnpj: String(form.get('cnpj') ?? ''),
         phone: String(form.get('telefone') ?? ''),
         email: String(form.get('email') ?? ''),
-        description: String(form.get('descricao') ?? ''),
         businessHours,
         address: {
           rua: String(form.get('rua') ?? ''),
@@ -208,7 +207,6 @@ function GestaoBarbearia() {
         tradeName: String(form.get('nomeFantasia') ?? ''),
         phone: String(form.get('telefone') ?? ''),
         email: estabelecimento.email,
-        description: String(form.get('descricao') ?? ''),
         businessHours: estabelecimento.horarioFuncionamento,
         address: estabelecimento.endereco,
       })
@@ -234,11 +232,10 @@ function GestaoBarbearia() {
         name: barbeiroForm.name.trim(),
         phone: barbeiroForm.phone.trim(),
         barberShopId: estabelecimento.id,
-        commission: Number(barbeiroForm.commission),
       }
       const response = await employeeService.createEmployee(payload)
       setBarbeiros((anteriores) => [...anteriores, response.data])
-      setBarbeiroForm({ name: '', email: '', password: '', phone: '', profilePictureUrl: '', commission: '0' })
+      setBarbeiroForm({ name: '', email: '', password: '', phone: '', profilePictureUrl: '' })
       setBarbeiroFormAberto(false)
       setMensagem('Barbeiro adicionado com sucesso.')
     } catch {
@@ -300,7 +297,6 @@ function GestaoBarbearia() {
           <input name="cnpj" placeholder="CNPJ" required />
           <input name="telefone" placeholder="Telefone" required />
           <input name="email" type="email" placeholder="E-mail comercial" required />
-          <textarea name="descricao" placeholder="Descrição da barbearia" required />
           <h2>Horário de funcionamento</h2>
           <div className="gestao-horarios">
             {horarios.map((horario, index) => (
@@ -358,8 +354,8 @@ function GestaoBarbearia() {
           </section>
           <section className="gestao-card"><h2>Agendamentos por barbeiro</h2>{agendamentosPorBarbeiro.length ? agendamentosPorBarbeiro.map((item) => <div className="gestao-barra" key={item.id}><span>{item.nome}</span><b>{item.total}</b><i><em style={{ width: `${Math.min(100, item.total * 15 + 4)}%` }} /></i></div>) : <p>Nenhum barbeiro cadastrado.</p>}</section>
         </>}
-        {aba === 'barbearia' && <section className="gestao-card"><h2>Editar barbearia</h2><p>Atualize os dados públicos do seu estabelecimento.</p><form className="gestao-form" onSubmit={salvarBarbearia}><input name="nomeFantasia" defaultValue={estabelecimento?.nomeFantasia} placeholder="Nome da barbearia" required /><input name="telefone" defaultValue={estabelecimento?.telefone} placeholder="Telefone" required /><textarea name="descricao" defaultValue={estabelecimento?.descricao} placeholder="Descrição" required /><button type="submit" disabled={salvando}>{salvando ? 'Salvando...' : 'Salvar alterações'}</button></form></section>}
-        {aba === 'barbeiros' && <section className="gestao-card"><div className="gestao-card-title"><h2>Barbeiros</h2>{!barbeiroFormAberto && <button type="button" onClick={() => setBarbeiroFormAberto(true)}>Adicionar barbeiro</button>}</div>{barbeiroFormAberto && <form className="gestao-form" onSubmit={adicionarBarbeiro}><input placeholder="Nome" value={barbeiroForm.name} onChange={(e) => setBarbeiroForm({ ...barbeiroForm, name: e.target.value })} required /><input type="email" placeholder="E-mail" value={barbeiroForm.email} onChange={(e) => setBarbeiroForm({ ...barbeiroForm, email: e.target.value })} required /><input type="password" placeholder="Senha" value={barbeiroForm.password} onChange={(e) => setBarbeiroForm({ ...barbeiroForm, password: e.target.value })} required /><input placeholder="Telefone" value={barbeiroForm.phone} onChange={(e) => setBarbeiroForm({ ...barbeiroForm, phone: e.target.value })} required /><input type="url" placeholder="URL da foto de perfil" value={barbeiroForm.profilePictureUrl} onChange={(e) => setBarbeiroForm({ ...barbeiroForm, profilePictureUrl: e.target.value })} /><input type="number" min="0" step="0.01" placeholder="Comissão (%)" value={barbeiroForm.commission} onChange={(e) => setBarbeiroForm({ ...barbeiroForm, commission: e.target.value })} required /><div className="gestao-form-acoes"><button type="submit" disabled={salvando}>{salvando ? 'Salvando...' : 'Salvar barbeiro'}</button><button type="button" onClick={() => { setBarbeiroFormAberto(false); setBarbeiroForm({ name: '', email: '', password: '', phone: '', profilePictureUrl: '', commission: '0' }) }} disabled={salvando}>Cancelar</button></div></form>}{barbeiros.map((item) => <div className="gestao-lista" key={item.id}><div><strong>{item.nome}</strong><span>{item.email} · {item.funcao}</span></div><button type="button" onClick={() => alternarBarbeiro(item)}>{item.ativo ? 'Remover' : 'Reativar'}</button></div>)}</section>}
+        {aba === 'barbearia' && <section className="gestao-card"><h2>Editar barbearia</h2><p>Atualize os dados públicos do seu estabelecimento.</p><form className="gestao-form" onSubmit={salvarBarbearia}><input name="nomeFantasia" defaultValue={estabelecimento?.nomeFantasia} placeholder="Nome da barbearia" required /><input name="telefone" defaultValue={estabelecimento?.telefone} placeholder="Telefone" required /><button type="submit" disabled={salvando}>{salvando ? 'Salvando...' : 'Salvar alterações'}</button></form></section>}
+        {aba === 'barbeiros' && <section className="gestao-card"><div className="gestao-card-title"><h2>Barbeiros</h2>{!barbeiroFormAberto && <button type="button" onClick={() => setBarbeiroFormAberto(true)}>Adicionar barbeiro</button>}</div>{barbeiroFormAberto && <form className="gestao-form" onSubmit={adicionarBarbeiro}><input placeholder="Nome" value={barbeiroForm.name} onChange={(e) => setBarbeiroForm({ ...barbeiroForm, name: e.target.value })} required /><input type="email" placeholder="E-mail" value={barbeiroForm.email} onChange={(e) => setBarbeiroForm({ ...barbeiroForm, email: e.target.value })} required /><input type="password" placeholder="Senha" value={barbeiroForm.password} onChange={(e) => setBarbeiroForm({ ...barbeiroForm, password: e.target.value })} required /><input placeholder="Telefone" value={barbeiroForm.phone} onChange={(e) => setBarbeiroForm({ ...barbeiroForm, phone: e.target.value })} required /><input type="url" placeholder="URL da foto de perfil" value={barbeiroForm.profilePictureUrl} onChange={(e) => setBarbeiroForm({ ...barbeiroForm, profilePictureUrl: e.target.value })} /><div className="gestao-form-acoes"><button type="submit" disabled={salvando}>{salvando ? 'Salvando...' : 'Salvar barbeiro'}</button><button type="button" onClick={() => { setBarbeiroFormAberto(false); setBarbeiroForm({ name: '', email: '', password: '', phone: '', profilePictureUrl: '' }) }} disabled={salvando}>Cancelar</button></div></form>}{barbeiros.map((item) => <div className="gestao-lista" key={item.id}><div><strong>{item.nome}</strong><span>{item.email} · {item.funcao}</span></div><button type="button" onClick={() => alternarBarbeiro(item)}>{item.ativo ? 'Remover' : 'Reativar'}</button></div>)}</section>}
         {aba === 'produtos' && <section className="gestao-card"><div className="gestao-card-title"><h2>Gerenciamento de produtos</h2><button type="button" onClick={() => { setProdutoEditando(null); setProdutoForm({ nome: '', descricao: '', preco: '', duracaoMinutos: '' }) }}>Criar produto</button></div><form className="gestao-form" onSubmit={salvarProduto}><input placeholder="Nome do produto/serviço" value={produtoForm.nome} onChange={(e) => setProdutoForm({ ...produtoForm, nome: e.target.value })} required /><input placeholder="Descrição" value={produtoForm.descricao} onChange={(e) => setProdutoForm({ ...produtoForm, descricao: e.target.value })} /><input type="number" min="0" step="0.01" placeholder="Preço" value={produtoForm.preco} onChange={(e) => setProdutoForm({ ...produtoForm, preco: e.target.value })} required /><input type="number" min="1" placeholder="Duração em minutos" value={produtoForm.duracaoMinutos} onChange={(e) => setProdutoForm({ ...produtoForm, duracaoMinutos: e.target.value })} required /><button type="submit" disabled={salvando}>{salvando ? 'Salvando...' : produtoEditando ? 'Salvar edição' : 'Criar produto'}</button></form>{produtos.map((item) => <div className="gestao-lista" key={item.id}><div><strong>{item.nome}</strong><span>{item.duracaoMinutos} min · R$ {item.preco.toFixed(2)}</span></div><button type="button" onClick={() => editarProduto(item)}>Editar</button></div>)}</section>}
         {aba === 'agendamentos' && <section className="gestao-card"><h2>Agendamentos totais</h2>{agendamentos.map((item) => <div className="gestao-lista" key={item.id}><div><strong>{item.nomeFuncionario || 'Agendamento'}</strong><span>{new Date(item.dataHora).toLocaleString('pt-BR')}</span></div><span>{item.status}</span></div>)}</section>}
       </div>

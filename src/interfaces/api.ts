@@ -81,7 +81,6 @@ export interface CreateBarberShopPayload {
   stateRegistration?: string;
   phone: string;
   email: string;
-  description: string;
   businessHours: BusinessHoursInput[];
   address: EnderecoDto;
 }
@@ -147,7 +146,6 @@ export interface EstablishmentRequest {
   tradeName: string;
   phone: string;
   email: string;
-  description: string;
   businessHours: string;
   address: EnderecoDto;
 }
@@ -176,7 +174,6 @@ export interface CreateBarberPayload {
   name: string;
   phone: string;
   barberShopId: string;
-  commission: number;
 }
 
 export interface CreateBarberUserPayload {

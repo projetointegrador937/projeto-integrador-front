@@ -23,7 +23,6 @@ export const establishmentService = {
     tradeName: payload.tradeName,
     phone: payload.phone,
     email: payload.email,
-    description: payload.description,
     businessHours: payload.businessHours,
     address: mapAddress(payload.address),
   }),

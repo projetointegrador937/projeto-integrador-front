@@ -9,7 +9,7 @@ if (!configuredBaseUrl && import.meta.env.PROD) {
 const base = (configuredBaseUrl || 'http://localhost:8080').replace(/\/+$/, '');
 
 if (!/^https?:\/\//i.test(base)) {
-  throw new Error('VITE_API_URL inválida. Use https://api-navalhacorte.ddns.net.');
+  throw new Error('VITE_API_URL inválida. Use uma URL HTTP/HTTPS válida.');
 }
 
 const api = axios.create({
