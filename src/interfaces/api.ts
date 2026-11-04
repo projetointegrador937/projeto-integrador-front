@@ -75,12 +75,15 @@ export interface BusinessHoursInput {
 }
 
 export interface CreateBarberShopPayload {
-  name: string;
-  description: string;
+  legalName: string;
+  tradeName: string;
+  cnpj: string;
+  stateRegistration?: string;
   phone: string;
-  email?: string;
-  logo?: string;
+  email: string;
+  description: string;
   businessHours: BusinessHoursInput[];
+  address: EnderecoDto;
 }
 
 export type CriarBarbeariaPayload = CreateBarberShopPayload;
@@ -140,16 +143,15 @@ export interface EstabelecimentoDetalheDto extends EstabelecimentoDto {
 
 export type Establishment = EstabelecimentoDto;
 
-export interface EstabelecimentoRequest {
-  razaoSocial: string;
-  nomeFantasia: string;
-  telefone: string;
+export interface EstablishmentRequest {
+  tradeName: string;
+  phone: string;
   email: string;
-  descricao: string;
-  horarioFuncionamento: string;
-  endereco: EnderecoDto;
+  description: string;
+  businessHours: string;
+  address: EnderecoDto;
 }
-export type EstablishmentRequest = EstabelecimentoRequest;
+export type EstabelecimentoRequest = EstablishmentRequest;
 export interface EstablishmentSearchParams { busca?: string; cidade?: string; page?: number; size?: number }
 
 export interface FuncionarioDto {
@@ -204,7 +206,7 @@ export type ServiceRequest = Partial<ServicoDto>;
 
 export interface HorarioDisponivelDto { horario: string; disponivel: boolean }
 export type Availability = HorarioDisponivelDto;
-export interface AvailabilityParams { data: string; funcionarioId?: string; servicoId?: string }
+export interface AvailabilityParams { date: string; employeeId?: string; serviceId?: string }
 
 export type StatusAgendamento = string;
 export interface AgendamentoDto {
@@ -225,9 +227,9 @@ export interface AgendamentoDto {
 }
 export type Appointment = AgendamentoDto;
 export interface AgendamentoDiaDto { dia: string; totalAgendamentos: number; agendamentos: AgendamentoDto[] }
-export interface CreateAppointmentRequest { estabelecimentoId: string; funcionarioId: string; servicoId: string; dataHora: string; observacoes?: string }
-export interface RescheduleAppointmentRequest { dataHora: string }
-export interface AgendaParams { mes?: number; ano?: number; funcionarioId?: string }
+export interface CreateAppointmentRequest { clientId?: string; establishmentId: string; employeeId: string; serviceId: string; dateTime: string; notes?: string }
+export interface RescheduleAppointmentRequest { newDateTime: string }
+export interface AgendaParams { month?: number; year?: number; employeeId?: string }
 
 export type StatusContato = string;
 export interface ContatoDto {
@@ -249,7 +251,7 @@ export interface ComissaoFuncionarioInfo { [key: string]: unknown }
 export interface ResumoAtendimentosInfo { [key: string]: unknown }
 export interface RelatorioComissaoDto { mes: number; ano: number; comissoes: ComissaoFuncionarioInfo[]; totalFaturamento: number; totalComissoes: number }
 export interface RelatorioAtendimentosDto { inicio: string; fim: string; resumo: ResumoAtendimentosInfo }
-export interface ReportParams { mes?: number; ano?: number; funcionarioId?: string; inicio?: string; fim?: string }
+export interface ReportParams { month?: number; year?: number; employeeId?: string; start?: string; end?: string }
 
 export interface BarberShopDto { id: string; name: string; description: string; phone: string; email: string; logo: string }
 export interface BarberShopServiceDto { id: string; name: string; price: number; durationInMinutes: number }

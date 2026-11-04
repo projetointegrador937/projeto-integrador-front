@@ -35,10 +35,15 @@ function Agendamentos() {
     setCarregando(true)
     setErro('')
     const request = usuario === 'barbeiro'
-      ? appointmentService.monthlyAgenda({ mes: mes + 1, ano })
+      ? appointmentService.monthlyAgenda({ month: mes + 1, year: ano })
       : appointmentService.mine()
     request.then((response) => {
-      if (ativo) setAgendamentos(response.data ?? [])
+      const resposta = response.data as unknown
+      const lista = Array.isArray(resposta) ? resposta as unknown[] : ((resposta as { data?: Appointment[] }).data ?? [])
+      const agendamentos = lista.length > 0 && typeof lista[0] === 'object' && lista[0] !== null && 'appointments' in lista[0]
+        ? lista.flatMap((dia) => ((dia as { appointments?: Appointment[] }).appointments ?? []))
+        : lista as Appointment[]
+      if (ativo) setAgendamentos(agendamentos)
     }).catch(() => {
       if (ativo) setErro('Não foi possível carregar os agendamentos. Tente novamente.')
     }).finally(() => {

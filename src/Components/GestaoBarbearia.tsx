@@ -73,16 +73,27 @@ function GestaoBarbearia() {
         if (!ativo) return
         setEstabelecimento(atual)
         if (!atual) return
-        const [funcionarios, servicos, agenda, relatorio] = await Promise.all([
+        const [funcionarios, servicos] = await Promise.all([
           establishmentService.employees(atual.id),
           establishmentService.services(atual.id),
-          appointmentService.monthlyAgenda(),
-          reportService.attendances(),
+        ])
+        const hoje = new Date()
+        const inicio = new Date(hoje.getFullYear(), hoje.getMonth(), 1).toISOString().slice(0, 10)
+        const fim = new Date(hoje.getFullYear(), hoje.getMonth() + 1, 0).toISOString().slice(0, 10)
+        const [agenda, relatorio] = await Promise.all([
+          funcionarios.data[0]
+            ? appointmentService.monthlyAgenda({ employeeId: funcionarios.data[0].id, month: hoje.getMonth() + 1, year: hoje.getFullYear() })
+            : Promise.resolve({ data: [] as Appointment[] }),
+          reportService.attendances({ start: inicio, end: fim }),
         ])
         if (!ativo) return
         setBarbeiros(funcionarios.data)
         setProdutos(servicos.data)
-        setAgendamentos(agenda.data)
+        const agendaData = agenda.data as unknown[]
+        const agrupada = agendaData.length > 0 && typeof agendaData[0] === 'object' && agendaData[0] !== null && 'appointments' in agendaData[0]
+        setAgendamentos(agrupada
+          ? agendaData.flatMap((dia) => ((dia as { appointments?: Appointment[] }).appointments ?? []))
+          : agendaData as Appointment[])
         const resumo = relatorio.data.resumo as Record<string, unknown>
         const valor = resumo.totalFaturamento ?? resumo.faturamento
         setFaturamento(typeof valor === 'number' ? valor : null)
@@ -159,11 +170,22 @@ function GestaoBarbearia() {
         end: fim,
       }))
       const payload: CreateBarberShopPayload = {
-        name: String(form.get('nomeFantasia') ?? ''),
-        description: String(form.get('descricao') ?? ''),
+        legalName: String(form.get('razaoSocial') ?? ''),
+        tradeName: String(form.get('nomeFantasia') ?? ''),
+        cnpj: String(form.get('cnpj') ?? ''),
         phone: String(form.get('telefone') ?? ''),
-        email: String(form.get('email') ?? '') || undefined,
+        email: String(form.get('email') ?? ''),
+        description: String(form.get('descricao') ?? ''),
         businessHours,
+        address: {
+          rua: String(form.get('rua') ?? ''),
+          numero: String(form.get('numero') ?? ''),
+          complemento: String(form.get('complemento') ?? ''),
+          bairro: String(form.get('bairro') ?? ''),
+          cidade: String(form.get('cidade') ?? ''),
+          estado: String(form.get('estado') ?? ''),
+          cep: String(form.get('cep') ?? ''),
+        },
       }
       const response = await establishmentService.createBarbershop(payload)
       setEstabelecimento(normalizarEstabelecimento(response.data as EstablishmentApiResponse))
@@ -183,13 +205,12 @@ function GestaoBarbearia() {
     setSalvando(true)
     try {
       const response = await establishmentService.update(estabelecimento.id, {
-        razaoSocial: estabelecimento.razaoSocial,
-        nomeFantasia: String(form.get('nomeFantasia') ?? ''),
-        telefone: String(form.get('telefone') ?? ''),
+        tradeName: String(form.get('nomeFantasia') ?? ''),
+        phone: String(form.get('telefone') ?? ''),
         email: estabelecimento.email,
-        descricao: String(form.get('descricao') ?? ''),
-        horarioFuncionamento: estabelecimento.horarioFuncionamento,
-        endereco: estabelecimento.endereco,
+        description: String(form.get('descricao') ?? ''),
+        businessHours: estabelecimento.horarioFuncionamento,
+        address: estabelecimento.endereco,
       })
       setEstabelecimento(response.data)
       setMensagem('Dados da barbearia atualizados com sucesso.')
@@ -234,8 +255,9 @@ function GestaoBarbearia() {
     setSalvando(true)
     try {
       if (produtoEditando) {
-        setProdutos((anteriores) => anteriores.map((produto) => produto.id === produtoEditando ? { ...produto, ...payload } : produto))
-        setMensagem('Produto atualizado nesta tela. O contrato atual da API não documenta atualização de serviços.')
+        const response = await establishmentService.updateService(estabelecimento.id, produtoEditando, payload)
+        setProdutos((anteriores) => anteriores.map((produto) => produto.id === produtoEditando ? response.data : produto))
+        setMensagem('Produto atualizado com sucesso.')
       } else {
         const response = await establishmentService.createService(estabelecimento.id, payload)
         setProdutos((anteriores) => [...anteriores, response.data])
@@ -275,6 +297,7 @@ function GestaoBarbearia() {
           <h2>Dados da barbearia</h2>
           <input name="razaoSocial" placeholder="Razão social" required />
           <input name="nomeFantasia" placeholder="Nome da barbearia" required />
+          <input name="cnpj" placeholder="CNPJ" required />
           <input name="telefone" placeholder="Telefone" required />
           <input name="email" type="email" placeholder="E-mail comercial" required />
           <textarea name="descricao" placeholder="Descrição da barbearia" required />

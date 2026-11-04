@@ -10,6 +10,7 @@ import Parceiros from './Components/Parceiros'
 import Contato from './Components/Contato'
 import SobreNos from './Components/SobreNos'
 import GestaoBarbearia from './Components/GestaoBarbearia'
+import NovoAgendamento from './Components/NovoAgendamento'
 import RotaProtegida from './Components/RotaProtegida'
 import { BrowserRouter, Routes, Route } from 'react-router-dom'
 import { getUserRole } from './services/auth'
@@ -81,6 +82,14 @@ function App() {
             element={
               <RotaProtegida permitidos={['barbearia']} redirecionar='/agendamentos'>
                 <GestaoBarbearia />
+              </RotaProtegida>
+            }
+          />
+          <Route
+            path='/novo-agendamento'
+            element={
+              <RotaProtegida permitidos={['usuario']} redirecionar='/login'>
+                <NovoAgendamento />
               </RotaProtegida>
             }
           />

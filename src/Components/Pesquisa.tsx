@@ -1,12 +1,15 @@
 import { useState, useEffect } from 'react'
 import './Pesquisa.css'
-import { useSearchParams } from 'react-router-dom'
+import { useSearchParams, useNavigate } from 'react-router-dom'
 import { establishmentService } from '../services/establishment.services'
 import type { Establishment } from '../interfaces/api'
 import Toast, { type ToastType } from './Toast'
+import { getUserRole } from '../services/auth'
 
 function Pesquisa() {
   const [searchParams] = useSearchParams()
+  const navigate = useNavigate()
+  const role = getUserRole()
 
   const [busca, setBusca] = useState(searchParams.get('busca') ?? '')
   const [cidade, setCidade] = useState(searchParams.get('cidade') ?? '')
@@ -125,9 +128,18 @@ function Pesquisa() {
                         <span className="resultado-horario">{est.horarioFuncionamento}</span>
                       )}
                     </div>
-                    {est.ativo !== undefined && !est.ativo && (
-                      <span className="resultado-inativo">Inativo</span>
-                    )}
+                    <div className="resultado-acoes">
+                      {est.ativo !== undefined && !est.ativo && (
+                        <span className="resultado-inativo">Inativo</span>
+                      )}
+                      {role === 'usuario' && est.ativo !== false && (
+                        <button
+                          className="resultado-agendar"
+                          onClick={() => navigate(`/novo-agendamento?estabelecimentoId=${est.id}&nome=${encodeURIComponent(est.nomeFantasia ?? '')}`)}>
+                          Agendar
+                        </button>
+                      )}
+                    </div>
                   </li>
                 ))}
               </ul>

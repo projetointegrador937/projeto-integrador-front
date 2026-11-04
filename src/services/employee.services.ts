@@ -7,7 +7,7 @@ const establishmentBase = '/api/v1/establishments';
 /** Operações disponíveis para funcionários no contrato atual da API. */
 export const employeeService = {
   listByEstablishment: (establishmentId: string) =>
-    api.get<Employee[]>(`${establishmentBase}/${establishmentId}/funcionarios`),
+    api.get<Employee[]>(`${establishmentBase}/${establishmentId}/employees`),
   /** Cria o usuário barbeiro e o vincula ao estabelecimento em dois passos. */
   createEmployee: async (payload: CreateBarberPayload) => {
     // Passo 1: criar usuário com role Barbeiro
@@ -18,13 +18,17 @@ export const employeeService = {
       profilePictureUrl: payload.profilePictureUrl,
     });
     // Passo 2: vincular ao estabelecimento
-    return api.post<Employee>(`${establishmentBase}/create-barber`, {
-      ...payload,
+    return api.post<Employee>(`${establishmentBase}/employees`, {
+      establishmentId: payload.barberShopId,
       userId: userResp.data.id,
+      name: payload.name,
+      email: payload.email,
+      phone: payload.phone,
+      role: 'Barbeiro',
+      commissionPercentage: payload.commission,
     });
   },
   create: (payload: EmployeeRequest) =>
-    api.post<Employee>(`${establishmentBase}/create-barber`, payload),
-  createSchedule: (payload: unknown) =>
-    api.post(`${establishmentBase}/create-barber-schedule`, payload),
+    api.post<Employee>(`${establishmentBase}/employees`, payload),
+
 };

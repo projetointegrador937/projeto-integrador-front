@@ -112,6 +112,7 @@
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
+  gap: 16px;
   background-color: #191D21;
   border: 1px solid #303438;
   border-radius: 10px;
@@ -121,6 +122,31 @@
 
 .resultado-card:hover {
   border-color: #F2BE8C;
+}
+
+.resultado-acoes {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.resultado-agendar {
+  padding: 9px 18px;
+  background-color: #F2BE8C;
+  color: #21170F;
+  border: none;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background-color 0.15s;
+}
+
+.resultado-agendar:hover {
+  background-color: #E5A96F;
 }
 
 .resultado-info {
