@@ -12,6 +12,30 @@ import './GestaoBarbearia.css'
 
 type Aba = 'dashboard' | 'barbearia' | 'barbeiros' | 'produtos' | 'agendamentos'
 
+type EstablishmentApiResponse = Partial<Establishment> & {
+  name?: string
+  description?: string
+  phone?: string
+  email?: string
+}
+
+function normalizarEstabelecimento(dado: EstablishmentApiResponse | null | undefined): Establishment | null {
+  if (!dado?.id) return null
+
+  return {
+    id: dado.id,
+    razaoSocial: dado.razaoSocial ?? dado.name ?? '',
+    nomeFantasia: dado.nomeFantasia ?? dado.name ?? '',
+    telefone: dado.telefone ?? dado.phone ?? '',
+    email: dado.email ?? '',
+    descricao: dado.descricao ?? dado.description ?? '',
+    horarioFuncionamento: dado.horarioFuncionamento ?? '',
+    ativo: dado.ativo ?? true,
+    endereco: dado.endereco ?? { rua: '', numero: '', bairro: '', cidade: '', estado: '', cep: '' },
+    criadoEm: dado.criadoEm ?? '',
+  }
+}
+
 function GestaoBarbearia() {
   const [aba, setAba] = useState<Aba>('dashboard')
   const [estabelecimento, setEstabelecimento] = useState<Establishment | null>(null)
@@ -43,22 +67,9 @@ function GestaoBarbearia() {
     async function carregar() {
       try {
         const estabelecimentos = await establishmentService.listBarbershops()
-        const lista = estabelecimentos.data
-        const legado = lista[0] ?? null
-        const atual: Establishment | null = legado ? {
-          id: legado.id,
-          razaoSocial: legado.name,
-          nomeFantasia: legado.name,
-          telefone: legado.phone,
-          email: legado.email,
-          descricao: legado.description,
-          horarioFuncionamento: '',
-          ativo: true,
-          endereco: {
-            rua: '', numero: '', bairro: '', cidade: '', estado: '', cep: '',
-          },
-          criadoEm: '',
-        } : null
+        const resposta = estabelecimentos.data as unknown as EstablishmentApiResponse[] | { data?: EstablishmentApiResponse[] }
+        const lista = Array.isArray(resposta) ? resposta : (resposta.data ?? [])
+        const atual = normalizarEstabelecimento(lista[0])
         if (!ativo) return
         setEstabelecimento(atual)
         if (!atual) return
@@ -155,7 +166,7 @@ function GestaoBarbearia() {
         businessHours,
       }
       const response = await establishmentService.createBarbershop(payload)
-      setEstabelecimento(response.data)
+      setEstabelecimento(normalizarEstabelecimento(response.data as EstablishmentApiResponse))
       setAba('dashboard')
       setMensagem('Barbearia cadastrada com sucesso. Agora você pode adicionar barbeiros.')
     } catch {
