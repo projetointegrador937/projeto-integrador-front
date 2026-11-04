@@ -83,7 +83,8 @@ export default function NovoAgendamento() {
       .finally(() => setCarregandoHorarios(false))
   }, [estabelecimentoId, barbeiroId, servicoId, data])
 
-  const barbeiroSelecionado = barbeiros.find((b) => b.id === barbeiroId)
+  const barbeirosAtivos = barbeiros.filter((barbeiro) => barbeiro.ativo)
+  const barbeiroSelecionado = barbeirosAtivos.find((b) => b.id === barbeiroId)
   const servicoSelecionado = servicos.find((s) => s.id === servicoId)
   const horariosDisponiveis = horarios.filter((h) => h.disponivel)
 
@@ -175,11 +176,16 @@ export default function NovoAgendamento() {
               <p className="novo-ag-info">Nenhum barbeiro disponível nesta barbearia.</p>
             )}
             <ul className="novo-ag-lista">
-              {barbeiros.filter((b) => b.ativo).map((b) => (
+              {barbeirosAtivos.map((b) => (
                 <li key={b.id}>
                   <button
                     className={`novo-ag-opcao ${barbeiroId === b.id ? 'selecionado' : ''}`}
-                    onClick={() => setBarbeiroId(b.id)}
+                    onClick={() => {
+                      setBarbeiroId(b.id)
+                      setServicoId('')
+                      setHorario('')
+                      setHorarios([])
+                    }}
                   >
                     <strong>{b.nome}</strong>
                     <span>{b.funcao}</span>
@@ -207,7 +213,11 @@ export default function NovoAgendamento() {
                 <li key={s.id}>
                   <button
                     className={`novo-ag-opcao ${servicoId === s.id ? 'selecionado' : ''}`}
-                    onClick={() => setServicoId(s.id)}
+                    onClick={() => {
+                      setServicoId(s.id)
+                      setHorario('')
+                      setHorarios([])
+                    }}
                   >
                     <strong>{s.nome}</strong>
                     <span>{s.duracaoMinutos} min · R$ {s.preco.toFixed(2)}</span>

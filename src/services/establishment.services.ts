@@ -3,6 +3,22 @@ import type { Availability, AvailabilityParams, BarberShopDto, EnderecoDto, Crea
 
 const base = '/api/v1/establishments';
 
+type ApiListResponse<T> = T[] | { data?: T[] };
+
+function unwrapList<T>(response: ApiListResponse<T>): T[] {
+  return Array.isArray(response) ? response : (response.data ?? []);
+}
+
+function normalizeEmployee(item: Employee & { name?: string; phone?: string; role?: string; isActive?: boolean }): Employee {
+  return {
+    ...item,
+    nome: item.nome ?? item.name ?? '',
+    telefone: item.telefone ?? item.phone ?? '',
+    funcao: item.funcao ?? item.role ?? '',
+    ativo: item.ativo ?? item.isActive ?? true,
+  };
+}
+
 function mapAddress(address: EnderecoDto) {
   return {
     street: address.rua,
@@ -35,8 +51,14 @@ export const establishmentService = {
     ...payload,
     address: mapAddress(payload.address),
   }),
-  employees: (id: string) => api.get<Employee[]>(`${base}/${id}/employees`),
-  services: (id: string) => api.get<Service[]>(`${base}/${id}/services`),
+  employees: async (id: string) => {
+    const response = await api.get<ApiListResponse<Employee>>(`${base}/${id}/employees`);
+    return { ...response, data: unwrapList(response.data).map(normalizeEmployee) };
+  },
+  services: async (id: string) => {
+    const response = await api.get<ApiListResponse<Service>>(`${base}/${id}/services`);
+    return { ...response, data: unwrapList(response.data) };
+  },
   createService: (id: string, payload: ServiceRequest) => api.post<Service>(`${base}/${id}/services`, {
     establishmentId: id,
     name: payload.nome,
@@ -52,5 +74,8 @@ export const establishmentService = {
       durationMinutes: payload.duracaoMinutos,
       price: payload.preco,
     }),
-  availability: (id: string, params: AvailabilityParams) => api.get<Availability[]>(`${base}/${id}/availability`, { params }),
+  availability: async (id: string, params: AvailabilityParams) => {
+    const response = await api.get<ApiListResponse<Availability>>(`${base}/${id}/availability`, { params });
+    return { ...response, data: unwrapList(response.data) };
+  },
 };
