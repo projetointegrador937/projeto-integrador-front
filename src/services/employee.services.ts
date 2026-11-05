@@ -20,5 +20,7 @@ export const employeeService = {
     }),
   create: (payload: EmployeeRequest) =>
     api.post<Employee>(`${establishmentBase}/employees`, payload),
+  resetPassword: (establishmentId: string, employeeId: string, password: string) =>
+    api.patch<void>(`${establishmentBase}/${establishmentId}/employees/${employeeId}/reset-password`, { password }),
 
 };

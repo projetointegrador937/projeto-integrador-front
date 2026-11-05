@@ -35,8 +35,8 @@ function formatarHorarioFuncionamento(valor?: string) {
 
 function temAgendamentoAtivo(item: Appointment) {
   const status = String(item.status ?? '').normalize('NFD').replace(/[\\u0300-\\u036f]/g, '').toUpperCase()
-  const encerrado = ['CANCELADO', 'CANCELADA', 'CANCELLED', 'CONCLUIDO', 'CONCLUIDA', 'COMPLETED', 'REJEITADO', 'REJEITADA'].some((valor) => status.includes(valor))
-  return !encerrado && new Date(item.dataHora).getTime() >= Date.now()
+  const ativo = status === '0' || status === '1' || ['PENDENTE', 'PENDING', 'CONFIRMADO', 'CONFIRMED'].some((valor) => status.includes(valor))
+  return ativo && new Date(item.dataHora).getTime() >= Date.now()
 }
 
 function formatarTelefone(valor?: string) {

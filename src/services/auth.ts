@@ -34,6 +34,22 @@ function getRoleClaim(claims: Record<string, unknown>): unknown {
   return Array.isArray(roleClaim) ? roleClaim[0] : roleClaim
 }
 
+export function getEmployeeId(): string | undefined {
+  const token = localStorage.getItem('accessToken') || localStorage.getItem('token')
+  if (!token) return undefined
+  const claims = decodePayload(token)
+  const value = claims?.employeeId
+    ?? claims?.EmployeeId
+    ?? claims?.funcionarioId
+    ?? claims?.FuncionarioId
+    ?? claims?.employee_id
+    ?? claims?.['employee-id']
+    ?? claims?.employee
+    ?? claims?.funcionario
+    ?? claims?.['employeeIdClaim']
+  return typeof value === 'string' && value.trim() ? value.trim() : undefined
+}
+
 export function getUserEmail(): string | undefined {
   const token = localStorage.getItem('accessToken') || localStorage.getItem('token')
   if (!token) return undefined

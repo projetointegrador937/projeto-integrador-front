@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { getUserRole, type UserRole } from '../services/auth'
+import { getEmployeeId, getUserRole, type UserRole } from '../services/auth'
+import { authService } from '../services/auth.services'
 import { appointmentService } from '../services/appointment.services'
 import type { Appointment } from '../interfaces/api'
 import './Agendamentos.css'
@@ -25,9 +26,20 @@ function statusLabel(status: string) {
   return labels[value] ?? (value && !/^\\d+$/.test(value) ? value : 'Agendamento')
 }
 
-function statusKey(status: string) {
-  return String(status ?? '').normalize('NFD').replace(/[\\u0300-\\u036f]/g, '').toUpperCase()
+function statusKey(status: unknown) {
+  return String(status ?? '').trim().normalize('NFD').replace(/[\u0300-\u036f]/g, '').toUpperCase()
 }
+
+function isStatusAtivo(status: unknown) {
+  const value = statusKey(status)
+  return value === '0' || value === '1' || value === 'PENDENTE' || value === 'PENDING' || value === 'CONFIRMADO' || value === 'CONFIRMED'
+}
+
+function isStatusEncerrado(status: unknown) {
+  const value = statusKey(status)
+  return value === '2' || value === '3' || value === 'FINALIZADO' || value === 'FINISHED' || value === 'CONCLUIDO' || value === 'COMPLETED' || value === 'CANCELADO' || value === 'CANCELLED'
+}
+
 
 function formatAddress(appointment: Appointment) {
   const address = appointment.enderecoEstabelecimento ?? appointment.endereco
@@ -45,9 +57,16 @@ function formatAddress(appointment: Appointment) {
 
 function Agendamentos() {
   const usuario: UserRole = getUserRole()
+  const employeeId = getEmployeeId()
   const [aba, setAba] = useState<'proximos' | 'historico'>('proximos')
+  const hoje = new Date()
+  const inicioSemana = new Date(hoje)
+  inicioSemana.setDate(hoje.getDate() - hoje.getDay())
+  const dataInput = (data: Date) => `${data.getFullYear()}-${String(data.getMonth() + 1).padStart(2, '0')}-${String(data.getDate()).padStart(2, '0')}`
+  const [periodoInicio, setPeriodoInicio] = useState(dataInput(inicioSemana))
+  const [periodoFim, setPeriodoFim] = useState(dataInput(new Date(inicioSemana.getFullYear(), inicioSemana.getMonth(), inicioSemana.getDate() + 6)))
   const [mesAtual, setMesAtual] = useState(new Date())
-  const [diaSelecionado, setDiaSelecionado] = useState<number | null>(null)
+  const [diaSelecionado, setDiaSelecionado] = useState<number | null>(new Date().getDate())
   const [agendamentos, setAgendamentos] = useState<Appointment[]>([])
   const [carregando, setCarregando] = useState(false)
   const [erro, setErro] = useState('')
@@ -64,31 +83,57 @@ function Agendamentos() {
     let ativo = true
     setCarregando(true)
     setErro('')
-    const request = usuario === 'barbeiro'
-      ? appointmentService.monthlyAgenda({ month: mes + 1, year: ano })
-      : appointmentService.mine()
-    request.then((response) => {
-      const resposta = response.data as unknown
-      const lista = Array.isArray(resposta) ? resposta as unknown[] : ((resposta as { data?: Appointment[] }).data ?? [])
-      const agendamentos = lista.length > 0 && typeof lista[0] === 'object' && lista[0] !== null && 'appointments' in lista[0]
-        ? lista.flatMap((dia) => ((dia as { appointments?: Appointment[] }).appointments ?? []))
-        : lista as Appointment[]
-      if (ativo) setAgendamentos(agendamentos)
+
+    const carregar = async (): Promise<Appointment[]> => {
+      let idFuncionario = employeeId
+      if (usuario === 'barbeiro' && !idFuncionario) {
+        const perfil = await authService.getCurrentUser()
+        const dados = perfil.data as typeof perfil.data & { employeeId?: string; funcionarioId?: string }
+        idFuncionario = dados.employeeId ?? dados.funcionarioId
+      }
+      if (usuario === 'barbeiro' && !idFuncionario) throw new Error('employeeId não encontrado no perfil do barbeiro.')
+      if (usuario !== 'barbeiro') return (await appointmentService.mine()).data.data ?? []
+
+      const inicio = new Date(`${periodoInicio}T00:00:00`)
+      const fim = new Date(`${periodoFim}T00:00:00`)
+      if (Number.isNaN(inicio.getTime()) || Number.isNaN(fim.getTime()) || inicio > fim) throw new Error('Período inválido.')
+      const quantidadeDias = Math.floor((fim.getTime() - inicio.getTime()) / 86400000) + 1
+      if (quantidadeDias > 31) throw new Error('Selecione um período de até 31 dias.')
+      const dias = await Promise.all(Array.from({ length: quantidadeDias }, (_, indice) => {
+        const data = new Date(inicio)
+        data.setDate(inicio.getDate() + indice)
+        return appointmentService.dailyAgenda(dataInput(data), { employeeId: idFuncionario })
+      }))
+      return dias.flatMap((response) => {
+        const payload = response.data as unknown
+        if (Array.isArray(payload)) return payload as Appointment[]
+        const objeto = payload as { data?: Appointment[]; agendamentos?: Appointment[] }
+        return objeto.data ?? objeto.agendamentos ?? []
+      })
+    }
+
+    carregar().then((agendamentos) => {
+      const apenasAtivos = usuario === 'barbeiro' ? agendamentos.filter((item) => isStatusAtivo(item.status)) : agendamentos
+      if (ativo) setAgendamentos(apenasAtivos)
     }).catch(() => {
       if (ativo) setErro('Não foi possível carregar os agendamentos. Tente novamente.')
     }).finally(() => {
       if (ativo) setCarregando(false)
     })
     return () => { ativo = false }
-  }, [usuario, mes, ano])
+  }, [usuario, employeeId, periodoInicio, periodoFim, mes, ano])
 
-  const proximos = useMemo(() => agendamentos.filter((item) => new Date(item.dataHora) >= new Date()), [agendamentos])
-  const historico = useMemo(() => agendamentos.filter((item) => new Date(item.dataHora) < new Date()), [agendamentos])
+  const proximos = useMemo(() => agendamentos.filter((item) => {
+    // Pendentes e confirmados continuam ativos até serem finalizados ou cancelados.
+    // Não filtramos pela data aqui porque a API pode retornar timestamps sem
+    // timezone e isso não deve esconder um agendamento ativo do cliente.
+    return isStatusAtivo(item.status)
+  }), [agendamentos])
+  const historico = useMemo(() => agendamentos.filter((item) => {
+    return isStatusEncerrado(item.status) || !isStatusAtivo(item.status)
+  }), [agendamentos])
   const reservas = aba === 'proximos' ? proximos : historico
-  const doDia = diaSelecionado ? agendamentos.filter((item) => {
-    const data = new Date(item.dataHora)
-    return data.getFullYear() === ano && data.getMonth() === mes && data.getDate() === diaSelecionado
-  }) : []
+  const doDia = usuario === 'barbeiro' ? agendamentos : []
 
   async function cancelarAgendamento(agendamento: Appointment) {
     if (!window.confirm('Deseja realmente cancelar este agendamento?')) return
@@ -118,8 +163,9 @@ function Agendamentos() {
       {erro && <p className="agenda-vazia">{erro}</p>}
       {carregando && <p className="agenda-vazia">Carregando agendamentos...</p>}
       {usuario === 'usuario' && <div className="agenda-abas"><button className={aba === 'proximos' ? 'ativa' : ''} onClick={() => setAba('proximos')}>Próximos agendamentos</button><button className={aba === 'historico' ? 'ativa' : ''} onClick={() => setAba('historico')}>Histórico completo</button></div>}
-      {usuario === 'barbeiro' && <div className="calendario-card"><div className="calendario-cabecalho"><button onClick={() => mudarMes(-1)}>←</button><h2>{nomesMeses[mes]} {ano}</h2><button onClick={() => mudarMes(1)}>→</button></div><div className="calendario-grade">{['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'].map((dia) => <div className="calendario-semana" key={dia}>{dia}</div>)}{Array.from({ length: primeiroDia }, (_, i) => <div className="calendario-vazio" key={`vazio-${i}`} />)}{Array.from({ length: diasNoMes }, (_, i) => { const dia = i + 1; const ocupado = agendamentos.some((item) => { const data = new Date(item.dataHora); return data.getFullYear() === ano && data.getMonth() === mes && data.getDate() === dia }); return <button key={dia} className={`calendario-dia ${ocupado ? 'ocupado' : ''} ${diaSelecionado === dia ? 'selecionado' : ''}`} onClick={() => setDiaSelecionado(dia)}><span>{dia}</span>{ocupado && <i />}</button> })}</div></div>}
-      {usuario === 'barbeiro' ? <section className="agenda-dia"><h2>{diaSelecionado ? `Atendimentos de ${diaSelecionado} de ${nomesMeses[mes]}` : 'Selecione um dia no calendário'}</h2>{diaSelecionado && !doDia.length && <p className="agenda-vazia">Nenhum atendimento cadastrado para este dia.</p>}{doDia.map((item) => <article className="cliente-horario" key={item.id}><strong className="cliente-hora">{new Date(item.dataHora).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}</strong><div className="cliente-info"><h3>Cliente #{item.clienteId}</h3><p>{item.nomeServico}</p></div><span className="cliente-status">{statusLabel(item.status)}</span></article>)}</section> : <div className="historico-lista">{!carregando && !reservas.length && <p className="agenda-vazia">Nenhum agendamento encontrado.</p>}{reservas.map((item) => { const status = statusKey(item.status); const podeCancelar = !status.includes('CANCEL') && !status.includes('CONCLUID') && !status.includes('COMPLET') && !status.includes('REJEIT'); return <article className="historico-card" key={item.id}><div className="historico-principal"><span className="agenda-etiqueta">{statusLabel(item.status)}</span><h3>{item.nomeServico || 'Serviço não informado'}</h3><p className="historico-estabelecimento">📍 {item.nomeEstabelecimento || 'Estabelecimento não informado'}</p><p className="historico-endereco">{formatAddress(item)}</p><div className="historico-meta"><span>📅 {formatDate(item.dataHora)}</span><span>✂ {item.nomeFuncionario || 'Barbeiro não informado'}</span><span>💰 {formatMoney(item.valorTotal)}</span></div>{item.observacoes && <small>Observações: {item.observacoes}</small>} {podeCancelar && <button type="button" className="historico-cancelar" onClick={() => void cancelarAgendamento(item)} disabled={cancelando === item.id}>{cancelando === item.id ? 'Cancelando...' : 'Cancelar agendamento'}</button>}</div></article>})}</div>}
+      {usuario === 'barbeiro' && <div className="agenda-filtros-periodo"><label>De: <input type="date" value={periodoInicio} onChange={(event) => setPeriodoInicio(event.target.value)} /></label><label>Até: <input type="date" value={periodoFim} onChange={(event) => setPeriodoFim(event.target.value)} /></label></div>}
+      {false && usuario === 'barbeiro' && <div className="calendario-card"><div className="calendario-cabecalho"><button onClick={() => mudarMes(-1)}>←</button><h2>{nomesMeses[mes]} {ano}</h2><button onClick={() => mudarMes(1)}>→</button></div><div className="calendario-grade">{['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'].map((dia) => <div className="calendario-semana" key={dia}>{dia}</div>)}{Array.from({ length: primeiroDia }, (_, i) => <div className="calendario-vazio" key={`vazio-${i}`} />)}{Array.from({ length: diasNoMes }, (_, i) => { const dia = i + 1; const ocupado = agendamentos.some((item) => { const data = new Date(item.dataHora); return data.getFullYear() === ano && data.getMonth() === mes && data.getDate() === dia }); return <button key={dia} className={`calendario-dia ${ocupado ? 'ocupado' : ''} ${diaSelecionado === dia ? 'selecionado' : ''}`} onClick={() => setDiaSelecionado(dia)}><span>{dia}</span>{ocupado && <i />}</button> })}</div></div>}
+      {usuario === 'barbeiro' ? <section className="agenda-dia"><h2>Atendimentos da semana</h2>{!doDia.length && <p className="agenda-vazia">Nenhum atendimento pendente ou confirmado nesta semana.</p>}{doDia.map((item) => <article className="cliente-horario" key={item.id}><strong className="cliente-hora">{new Date(item.dataHora).toLocaleDateString('pt-BR', { weekday: 'short', day: '2-digit', month: '2-digit' })}<br />{new Date(item.dataHora).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}</strong><div className="cliente-info"><h3>Cliente #{item.clienteId}</h3><p>{item.nomeServico}</p></div><span className="cliente-status">{statusLabel(item.status)}</span></article>)}</section> : <div className="historico-lista">{!carregando && !reservas.length && <p className="agenda-vazia">Nenhum agendamento encontrado.</p>}{reservas.map((item) => { const podeCancelar = isStatusAtivo(item.status); return <article className="historico-card" key={item.id}><div className="historico-principal"><span className="agenda-etiqueta">{statusLabel(item.status)}</span><h3>{item.nomeServico || 'Serviço não informado'}</h3><p className="historico-estabelecimento">📍 {item.nomeEstabelecimento || 'Estabelecimento não informado'}</p><p className="historico-endereco">{formatAddress(item)}</p><div className="historico-meta"><span>📅 {formatDate(item.dataHora)}</span><span>✂ {item.nomeFuncionario || 'Barbeiro não informado'}</span><span>💰 {formatMoney(item.valorTotal)}</span></div>{item.observacoes && <small>Observações: {item.observacoes}</small>} {podeCancelar && <button type="button" className="historico-cancelar" onClick={() => void cancelarAgendamento(item)} disabled={cancelando === item.id}>{cancelando === item.id ? 'Cancelando...' : 'Cancelar agendamento'}</button>}</div></article>})}</div>}
     </section>
   </main>
 }

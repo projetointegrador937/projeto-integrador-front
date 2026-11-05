@@ -29,6 +29,8 @@ export interface UsuarioResumo {
   nome: string;
   contato: string | null;
   endereco: EnderecoUsuario | null;
+  employeeId?: string;
+  funcionarioId?: string;
 }
 
 export interface EnderecoUsuario {
