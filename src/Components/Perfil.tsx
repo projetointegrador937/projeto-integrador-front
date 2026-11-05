@@ -91,19 +91,20 @@ function Perfil() {
       try {
         const { data } = await authService.getCurrentUser()
         if (!ativo) return
-        setNomeUsuario(data.nome)
-        if (data.endereco) {
+        const nomeCarregado = data.name.trim() || getUserName()
+        setNomeUsuario(nomeCarregado)
+        if (data.address) {
           setEndereco({
-            rua: data.endereco.rua,
-            numero: data.endereco.numero,
-            complemento: data.endereco.complemento ?? '',
-            bairro: data.endereco.bairro,
-            cep: data.endereco.cep,
-            cidade: data.endereco.cidade,
-            estado: data.endereco.estado,
+            rua: data.address.street,
+            numero: data.address.number,
+            complemento: data.address.additionalInfo ?? '',
+            bairro: data.address.neighborhood,
+            cep: data.address.postalCode,
+            cidade: data.address.city,
+            estado: data.address.state,
           })
         }
-        setTelefone(data.contato ?? '')
+        setTelefone(data.contact ?? '')
       } catch {
         setToast({ message: 'Não foi possível carregar os dados do seu perfil.', type: 'error' })
       }

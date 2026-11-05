@@ -26,21 +26,20 @@ export interface EnderecoDto {
 
 export interface UsuarioResumo {
   id: string;
-  nome: string;
-  contato: string | null;
-  endereco: EnderecoUsuario | null;
+  name: string;
+  contact: string | null;
+  address: EnderecoUsuario | null;
   employeeId?: string;
-  funcionarioId?: string;
 }
 
 export interface EnderecoUsuario {
-  rua: string;
-  numero: string;
-  complemento: string | null;
-  bairro: string;
-  cep: string;
-  cidade: string;
-  estado: string;
+  street: string;
+  number: string;
+  additionalInfo: string | null;
+  neighborhood: string;
+  postalCode: string;
+  city: string;
+  state: string;
   latitude: number | null;
   longitude: number | null;
 }
