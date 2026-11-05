@@ -48,18 +48,20 @@ function GestaoBarbearia() {
   const [mensagem, setMensagem] = useState('')
   const [salvando, setSalvando] = useState(false)
   const [produtoEditando, setProdutoEditando] = useState<string | null>(null)
+  const [produtoFormAberto, setProdutoFormAberto] = useState(false)
   const [produtoForm, setProdutoForm] = useState({ nome: '', descricao: '', preco: '', duracaoMinutos: '' })
   const [barbeiroFormAberto, setBarbeiroFormAberto] = useState(false)
+  const [barbeiroEditando, setBarbeiroEditando] = useState<string | null>(null)
   const [barbeiroForm, setBarbeiroForm] = useState({ name: '', email: '', password: '', phone: '', profilePictureUrl: '' })
   const [consultandoCep, setConsultandoCep] = useState(false)
   const [horarios, setHorarios] = useState([
-    { dia: 'Domingo', inicio: '09:00', fim: '18:00' },
-    { dia: 'Segunda-feira', inicio: '09:00', fim: '18:00' },
-    { dia: 'Terça-feira', inicio: '09:00', fim: '18:00' },
-    { dia: 'Quarta-feira', inicio: '09:00', fim: '18:00' },
-    { dia: 'Quinta-feira', inicio: '09:00', fim: '18:00' },
-    { dia: 'Sexta-feira', inicio: '09:00', fim: '18:00' },
-    { dia: 'Sábado', inicio: '09:00', fim: '18:00' },
+    { dia: 'Domingo', inicio: '09:00', fim: '18:00', almocoInicio: '', almocoFim: '' },
+    { dia: 'Segunda-feira', inicio: '09:00', fim: '18:00', almocoInicio: '', almocoFim: '' },
+    { dia: 'Terça-feira', inicio: '09:00', fim: '18:00', almocoInicio: '', almocoFim: '' },
+    { dia: 'Quarta-feira', inicio: '09:00', fim: '18:00', almocoInicio: '', almocoFim: '' },
+    { dia: 'Quinta-feira', inicio: '09:00', fim: '18:00', almocoInicio: '', almocoFim: '' },
+    { dia: 'Sexta-feira', inicio: '09:00', fim: '18:00', almocoInicio: '', almocoFim: '' },
+    { dia: 'Sábado', inicio: '09:00', fim: '18:00', almocoInicio: '', almocoFim: '' },
   ])
 
   useEffect(() => {
@@ -106,6 +108,24 @@ function GestaoBarbearia() {
     void carregar()
     return () => { ativo = false }
   }, [])
+
+  useEffect(() => {
+    if (aba !== 'produtos' || !estabelecimento) return
+    let ativo = true
+    setSalvando(true)
+    setErro('')
+    establishmentService.services(estabelecimento.id)
+      .then((response) => {
+        if (ativo) setProdutos(response.data)
+      })
+      .catch(() => {
+        if (ativo) setErro('Não foi possível carregar os produtos da barbearia.')
+      })
+      .finally(() => {
+        if (ativo) setSalvando(false)
+      })
+    return () => { ativo = false }
+  }, [aba, estabelecimento])
 
   useEffect(() => {
     if (aba !== 'barbeiros' || !estabelecimento) return
@@ -164,14 +184,16 @@ function GestaoBarbearia() {
     setSalvando(true)
     try {
       const diasDaSemana = ['Domingo', 'Segunda-feira', 'Terça-feira', 'Quarta-feira', 'Quinta-feira', 'Sexta-feira', 'Sábado']
-      const businessHours: BusinessHoursInput[] = horarios.map(({ dia, inicio, fim }) => ({
+      const businessHours: BusinessHoursInput[] = horarios.map(({ dia, inicio, fim, almocoInicio, almocoFim }) => ({
         dayOfWeek: diasDaSemana.indexOf(dia) as BusinessHoursInput['dayOfWeek'],
         start: inicio,
         end: fim,
+        breakStart: almocoInicio || null,
+        breakEnd: almocoFim || null,
       }))
       const payload: CreateBarberShopPayload = {
-        legalName: String(form.get('razaoSocial') ?? ''),
-        tradeName: String(form.get('nomeFantasia') ?? ''),
+        legalName: String(form.get('nomeFantasia') ?? form.get('razaoSocial') ?? '').trim(),
+        tradeName: String(form.get('nomeFantasia') ?? form.get('razaoSocial') ?? '').trim(),
         cnpj: String(form.get('cnpj') ?? ''),
         phone: String(form.get('telefone') ?? ''),
         email: String(form.get('email') ?? ''),
@@ -206,7 +228,7 @@ function GestaoBarbearia() {
       const response = await establishmentService.update(estabelecimento.id, {
         tradeName: String(form.get('nomeFantasia') ?? ''),
         phone: String(form.get('telefone') ?? ''),
-        email: estabelecimento.email,
+        email: String(form.get('email') ?? estabelecimento.email),
         businessHours: estabelecimento.horarioFuncionamento,
         address: estabelecimento.endereco,
       })
@@ -233,11 +255,18 @@ function GestaoBarbearia() {
         phone: barbeiroForm.phone.trim(),
         barberShopId: estabelecimento.id,
       }
-      const response = await employeeService.createEmployee(payload)
-      setBarbeiros((anteriores) => [...anteriores, response.data])
+      const response = barbeiroEditando
+        ? await establishmentService.updateEmployee(estabelecimento.id, barbeiroEditando, {
+          name: barbeiroForm.name.trim(), email: barbeiroForm.email.trim(), phone: barbeiroForm.phone.trim(), role: 'Barbeiro',
+        })
+        : await employeeService.createEmployee(payload)
+      setBarbeiros((anteriores) => barbeiroEditando
+        ? anteriores.map((item) => item.id === barbeiroEditando ? response.data : item)
+        : [...anteriores, response.data])
       setBarbeiroForm({ name: '', email: '', password: '', phone: '', profilePictureUrl: '' })
       setBarbeiroFormAberto(false)
-      setMensagem('Barbeiro adicionado com sucesso.')
+      setBarbeiroEditando(null)
+      setMensagem(barbeiroEditando ? 'Barbeiro atualizado com sucesso.' : 'Barbeiro adicionado com sucesso.')
     } catch {
       setErro('Não foi possível adicionar o barbeiro. Verifique os dados e tente novamente.')
     } finally {
@@ -260,14 +289,61 @@ function GestaoBarbearia() {
         setProdutos((anteriores) => [...anteriores, response.data])
         setMensagem('Produto criado com sucesso.')
       }
-      setProdutoForm({ nome: '', descricao: '', preco: '', duracaoMinutos: '' }); setProdutoEditando(null)
+      setProdutoForm({ nome: '', descricao: '', preco: '', duracaoMinutos: '' }); setProdutoEditando(null); setProdutoFormAberto(false)
     } catch { setErro('Não foi possível salvar o produto.') } finally { setSalvando(false) }
   }
 
   function editarProduto(produto: Service) {
     setProdutoEditando(produto.id)
+    setProdutoFormAberto(true)
     setProdutoForm({ nome: produto.nome, descricao: produto.descricao ?? '', preco: String(produto.preco), duracaoMinutos: String(produto.duracaoMinutos) })
   }
+
+  async function removerProduto(produto: Service) {
+    if (!estabelecimento || !window.confirm(`Remover o produto "${produto.nome}"?`)) return
+    setSalvando(true)
+    setErro('')
+    try {
+      await establishmentService.deactivateService(estabelecimento.id, produto.id)
+      setProdutos((anteriores) => anteriores.map((item) => item.id === produto.id ? { ...item, ativo: false } : item))
+      setMensagem('Produto removido com sucesso.')
+    } catch {
+      setErro('Não foi possível remover o produto.')
+    } finally {
+      setSalvando(false)
+    }
+  }
+
+  function editarBarbeiro(barbeiro: Employee) {
+    setBarbeiroEditando(barbeiro.id)
+    setBarbeiroFormAberto(true)
+    setBarbeiroForm({ name: barbeiro.nome, email: barbeiro.email, password: '', phone: barbeiro.telefone, profilePictureUrl: '' })
+  }
+
+  async function alterarStatusAgendamento(id: string, acao: 'cancel' | 'complete' | 'undoCancel' | 'undoComplete') {
+    setSalvando(true)
+    setErro('')
+    setMensagem('')
+    try {
+      const response = await appointmentService[acao](id)
+      setAgendamentos((anteriores) => anteriores.map((item) => item.id === id ? response.data : item))
+      setMensagem('Status do agendamento atualizado com sucesso.')
+    } catch {
+      setErro('Não foi possível atualizar o status do agendamento. Verifique se a API disponibiliza esta ação.')
+    } finally {
+      setSalvando(false)
+    }
+  }
+
+  function statusAgendamento(status: string) {
+    return String(status ?? '').normalize('NFD').replace(/[\\u0300-\\u036f]/g, '').toUpperCase()
+  }
+
+  function statusAgendamentoLabel(status: string) {
+    const valor = String(status ?? '').trim()
+    return ({ '0': 'Pendente', '1': 'Confirmado', '2': 'Finalizado', '3': 'Cancelado' } as Record<string, string>)[valor] ?? valor
+  }
+
 
   function alternarBarbeiro(barbeiro: Employee) {
     setBarbeiros((anteriores) => anteriores.map((item) => item.id === barbeiro.id ? { ...item, ativo: !item.ativo } : item))
@@ -310,13 +386,15 @@ function GestaoBarbearia() {
                 </select>
                 <label>De<input type="time" value={horario.inicio} onChange={(event) => setHorarios((atuais) => atuais.map((item, itemIndex) => itemIndex === index ? { ...item, inicio: event.target.value } : item))} required /></label>
                 <label>Até<input type="time" value={horario.fim} onChange={(event) => setHorarios((atuais) => atuais.map((item, itemIndex) => itemIndex === index ? { ...item, fim: event.target.value } : item))} required /></label>
+                <label>Almoço início<input type="time" value={horario.almocoInicio} onChange={(event) => setHorarios((atuais) => atuais.map((item, itemIndex) => itemIndex === index ? { ...item, almocoInicio: event.target.value } : item))} /></label>
+                <label>Almoço fim<input type="time" value={horario.almocoFim} onChange={(event) => setHorarios((atuais) => atuais.map((item, itemIndex) => itemIndex === index ? { ...item, almocoFim: event.target.value } : item))} /></label>
                 {horarios.length > 1 && <button type="button" onClick={() => setHorarios((atuais) => atuais.filter((_, itemIndex) => itemIndex !== index))}>Remover</button>}
               </div>
             ))}
             {horarios.length < 7 && <button type="button" onClick={() => setHorarios((atuais) => {
                           const dias = ['Domingo', 'Segunda-feira', 'Terça-feira', 'Quarta-feira', 'Quinta-feira', 'Sexta-feira', 'Sábado']
                           const proximoDia = dias.find((dia) => !atuais.some((item) => item.dia === dia))
-                          return proximoDia ? [...atuais, { dia: proximoDia, inicio: '09:00', fim: '18:00' }] : atuais
+                          return proximoDia ? [...atuais, { dia: proximoDia, inicio: '09:00', fim: '18:00', almocoInicio: '', almocoFim: '' }] : atuais
                         })}>Adicionar dia</button>}
           </div>
           <h2>Endereço</h2>
@@ -352,12 +430,12 @@ function GestaoBarbearia() {
             <article><span>PRODUTOS / SERVIÇOS</span><strong>{produtos.length}</strong><small>Itens cadastrados</small></article>
             <article><span>FATURAMENTO</span><strong>{faturamento === null ? '—' : `R$ ${faturamento.toFixed(2)}`}</strong><small>Dados do relatório</small></article>
           </section>
-          <section className="gestao-card"><h2>Agendamentos por barbeiro</h2>{agendamentosPorBarbeiro.length ? agendamentosPorBarbeiro.map((item) => <div className="gestao-barra" key={item.id}><span>{item.nome}</span><b>{item.total}</b><i><em style={{ width: `${Math.min(100, item.total * 15 + 4)}%` }} /></i></div>) : <p>Nenhum barbeiro cadastrado.</p>}</section>
+          <section className="gestao-card"><h2>Agendamentos por barbeiro</h2>{agendamentosPorBarbeiro.length ? agendamentosPorBarbeiro.map((item) => <div className="gestao-barra" key={item.id}><span>{item.nome}</span><i><em style={{ width: `${Math.min(100, item.total * 15 + 4)}%` }} /></i></div>) : <p>Nenhum barbeiro cadastrado.</p>}</section>
         </>}
-        {aba === 'barbearia' && <section className="gestao-card"><h2>Editar barbearia</h2><p>Atualize os dados públicos do seu estabelecimento.</p><form className="gestao-form" onSubmit={salvarBarbearia}><input name="nomeFantasia" defaultValue={estabelecimento?.nomeFantasia} placeholder="Nome da barbearia" required /><input name="telefone" defaultValue={estabelecimento?.telefone} placeholder="Telefone" required /><button type="submit" disabled={salvando}>{salvando ? 'Salvando...' : 'Salvar alterações'}</button></form></section>}
-        {aba === 'barbeiros' && <section className="gestao-card"><div className="gestao-card-title"><h2>Barbeiros</h2>{!barbeiroFormAberto && <button type="button" onClick={() => setBarbeiroFormAberto(true)}>Adicionar barbeiro</button>}</div>{barbeiroFormAberto && <form className="gestao-form" onSubmit={adicionarBarbeiro}><input placeholder="Nome" value={barbeiroForm.name} onChange={(e) => setBarbeiroForm({ ...barbeiroForm, name: e.target.value })} required /><input type="email" placeholder="E-mail" value={barbeiroForm.email} onChange={(e) => setBarbeiroForm({ ...barbeiroForm, email: e.target.value })} required /><input type="password" placeholder="Senha" value={barbeiroForm.password} onChange={(e) => setBarbeiroForm({ ...barbeiroForm, password: e.target.value })} required /><input placeholder="Telefone" value={barbeiroForm.phone} onChange={(e) => setBarbeiroForm({ ...barbeiroForm, phone: e.target.value })} required /><input type="url" placeholder="URL da foto de perfil" value={barbeiroForm.profilePictureUrl} onChange={(e) => setBarbeiroForm({ ...barbeiroForm, profilePictureUrl: e.target.value })} /><div className="gestao-form-acoes"><button type="submit" disabled={salvando}>{salvando ? 'Salvando...' : 'Salvar barbeiro'}</button><button type="button" onClick={() => { setBarbeiroFormAberto(false); setBarbeiroForm({ name: '', email: '', password: '', phone: '', profilePictureUrl: '' }) }} disabled={salvando}>Cancelar</button></div></form>}{barbeiros.map((item) => <div className="gestao-lista" key={item.id}><div><strong>{item.nome}</strong><span>{item.email} · {item.funcao}</span></div><button type="button" onClick={() => alternarBarbeiro(item)}>{item.ativo ? 'Remover' : 'Reativar'}</button></div>)}</section>}
-        {aba === 'produtos' && <section className="gestao-card"><div className="gestao-card-title"><h2>Gerenciamento de produtos</h2><button type="button" onClick={() => { setProdutoEditando(null); setProdutoForm({ nome: '', descricao: '', preco: '', duracaoMinutos: '' }) }}>Criar produto</button></div><form className="gestao-form" onSubmit={salvarProduto}><input placeholder="Nome do produto/serviço" value={produtoForm.nome} onChange={(e) => setProdutoForm({ ...produtoForm, nome: e.target.value })} required /><input placeholder="Descrição" value={produtoForm.descricao} onChange={(e) => setProdutoForm({ ...produtoForm, descricao: e.target.value })} /><input type="number" min="0" step="0.01" placeholder="Preço" value={produtoForm.preco} onChange={(e) => setProdutoForm({ ...produtoForm, preco: e.target.value })} required /><input type="number" min="1" placeholder="Duração em minutos" value={produtoForm.duracaoMinutos} onChange={(e) => setProdutoForm({ ...produtoForm, duracaoMinutos: e.target.value })} required /><button type="submit" disabled={salvando}>{salvando ? 'Salvando...' : produtoEditando ? 'Salvar edição' : 'Criar produto'}</button></form>{produtos.map((item) => <div className="gestao-lista" key={item.id}><div><strong>{item.nome}</strong><span>{item.duracaoMinutos} min · R$ {item.preco.toFixed(2)}</span></div><button type="button" onClick={() => editarProduto(item)}>Editar</button></div>)}</section>}
-        {aba === 'agendamentos' && <section className="gestao-card"><h2>Agendamentos totais</h2>{agendamentos.map((item) => <div className="gestao-lista" key={item.id}><div><strong>{item.nomeFuncionario || 'Agendamento'}</strong><span>{new Date(item.dataHora).toLocaleString('pt-BR')}</span></div><span>{item.status}</span></div>)}</section>}
+        {aba === 'barbearia' && <section className="gestao-card"><h2>Editar barbearia</h2><p>Atualize os dados públicos do seu estabelecimento.</p><form key={estabelecimento?.id ?? 'barbearia'} className="gestao-form" onSubmit={salvarBarbearia}><input name="nomeFantasia" defaultValue={estabelecimento?.nomeFantasia ?? ''} placeholder="Nome da barbearia" required /><input name="telefone" defaultValue={estabelecimento?.telefone ?? ''} placeholder="Telefone" required /><input name="email" type="email" defaultValue={estabelecimento?.email ?? ''} placeholder="E-mail comercial" required /><button type="submit" disabled={salvando}>{salvando ? 'Salvando...' : 'Salvar alterações'}</button></form></section>}
+        {aba === 'barbeiros' && <section className="gestao-card"><div className="gestao-card-title"><h2>Barbeiros</h2>{!barbeiroFormAberto && <button type="button" onClick={() => setBarbeiroFormAberto(true)}>Adicionar barbeiro</button>}</div>{barbeiroFormAberto && <form className="gestao-form" onSubmit={adicionarBarbeiro}><input placeholder="Nome" value={barbeiroForm.name} onChange={(e) => setBarbeiroForm({ ...barbeiroForm, name: e.target.value })} required /><input type="email" name="barbeiro-email" autoComplete="off" placeholder="E-mail" value={barbeiroForm.email} onChange={(e) => setBarbeiroForm({ ...barbeiroForm, email: e.target.value })} required /><input type="password" name="barbeiro-senha" autoComplete="new-password" placeholder="Senha" value={barbeiroForm.password} onChange={(e) => setBarbeiroForm({ ...barbeiroForm, password: e.target.value })} required /><input placeholder="Telefone" value={barbeiroForm.phone} onChange={(e) => setBarbeiroForm({ ...barbeiroForm, phone: e.target.value })} required /><input type="url" placeholder="URL da foto de perfil" value={barbeiroForm.profilePictureUrl} onChange={(e) => setBarbeiroForm({ ...barbeiroForm, profilePictureUrl: e.target.value })} /><div className="gestao-form-acoes"><button type="submit" disabled={salvando}>{salvando ? 'Salvando...' : barbeiroEditando ? 'Salvar alterações' : 'Salvar barbeiro'}</button><button type="button" onClick={() => { setBarbeiroFormAberto(false); setBarbeiroEditando(null); setBarbeiroForm({ name: '', email: '', password: '', phone: '', profilePictureUrl: '' }) }} disabled={salvando}>Cancelar</button></div></form>}{barbeiros.map((item) => <div className="gestao-lista" key={item.id}><div><strong>{item.nome}</strong><span>{item.email} · {item.funcao}</span></div><div className="gestao-form-acoes"><button type="button" onClick={() => editarBarbeiro(item)}>Editar</button><button type="button" onClick={() => alternarBarbeiro(item)}>{item.ativo ? 'Remover' : 'Reativar'}</button></div></div>)}</section>}
+        {aba === 'produtos' && <section className="gestao-card"><div className="gestao-card-title"><h2>Gerenciamento de produtos</h2>{!produtoFormAberto && <button type="button" onClick={() => { setProdutoEditando(null); setProdutoForm({ nome: '', descricao: '', preco: '', duracaoMinutos: '' }); setProdutoFormAberto(true) }}>Criar produto</button>}</div>{salvando && <p>Carregando produtos...</p>}{produtoFormAberto && <form className="gestao-form" onSubmit={salvarProduto}><input placeholder="Nome do produto/serviço" value={produtoForm.nome} onChange={(e) => setProdutoForm({ ...produtoForm, nome: e.target.value })} required /><input placeholder="Descrição" value={produtoForm.descricao} onChange={(e) => setProdutoForm({ ...produtoForm, descricao: e.target.value })} /><input type="number" min="0" step="0.01" placeholder="Preço" value={produtoForm.preco} onChange={(e) => setProdutoForm({ ...produtoForm, preco: e.target.value })} required /><input type="number" min="1" placeholder="Duração em minutos" value={produtoForm.duracaoMinutos} onChange={(e) => setProdutoForm({ ...produtoForm, duracaoMinutos: e.target.value })} required /><div className="gestao-form-acoes"><button type="submit" disabled={salvando}>{salvando ? 'Salvando...' : produtoEditando ? 'Salvar edição' : 'Criar produto'}</button><button type="button" onClick={() => { setProdutoFormAberto(false); setProdutoEditando(null); setProdutoForm({ nome: '', descricao: '', preco: '', duracaoMinutos: '' }) }} disabled={salvando}>Cancelar</button></div></form>}{produtos.filter((item) => item.ativo).map((item) => <div className="gestao-lista" key={item.id}><div><strong>{item.nome}</strong><span>{item.duracaoMinutos} min · R$ {item.preco.toFixed(2)}</span></div><div className="gestao-form-acoes"><button type="button" onClick={() => editarProduto(item)}>Editar</button><button type="button" onClick={() => void removerProduto(item)} disabled={salvando}>Remover</button></div></div>)}{!salvando && !produtos.some((item) => item.ativo) && <p>Nenhum produto cadastrado.</p>}</section>}
+        {aba === 'agendamentos' && <section className="gestao-card"><h2>Agendamentos totais</h2>{agendamentos.map((item) => { const status = statusAgendamento(item.status); const cancelado = status === '3' || status.includes('CANCEL'); const concluido = status === '2' || status.includes('CONCLUID') || status.includes('COMPLET'); return <div className="gestao-lista" key={item.id}><div><strong>{item.nomeFuncionario || 'Agendamento'}</strong><span>{item.nomeServico} · {new Date(item.dataHora).toLocaleString('pt-BR')}</span><small>Cliente: {item.nomeCliente || item.clienteNome || 'Nome não informado'} · {item.nomeEstabelecimento}</small></div><div className="gestao-form-acoes"><span>{statusAgendamentoLabel(item.status)}</span>{cancelado ? <button type="button" onClick={() => void alterarStatusAgendamento(item.id, 'undoCancel')} disabled={salvando}>Desfazer cancelamento</button> : !concluido && <button type="button" onClick={() => void alterarStatusAgendamento(item.id, 'cancel')} disabled={salvando}>Cancelar</button>}{concluido ? <button type="button" onClick={() => void alterarStatusAgendamento(item.id, 'undoComplete')} disabled={salvando}>Desfazer finalização</button> : !cancelado && <button type="button" onClick={() => void alterarStatusAgendamento(item.id, 'complete')} disabled={salvando}>Finalizar</button>}</div></div>})}</section>}
       </div>
     </main>
   )

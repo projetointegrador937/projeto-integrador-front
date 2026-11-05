@@ -9,6 +9,9 @@ export const appointmentService = {
   create: (payload: CreateAppointmentRequest) => api.post<Appointment>(base, payload),
   reschedule: (id: string, payload: RescheduleAppointmentRequest) => api.put<Appointment>(`${base}/${id}/reschedule`, payload),
   cancel: (id: string) => api.patch<Appointment>(`${base}/${id}/cancel`),
+  complete: (id: string) => api.patch<Appointment>(`${base}/${id}/complete`),
+  undoCancel: (id: string) => api.patch<Appointment>(`${base}/${id}/undo-cancel`),
+  undoComplete: (id: string) => api.patch<Appointment>(`${base}/${id}/undo-complete`),
 };
 
 export const availabilityService = {

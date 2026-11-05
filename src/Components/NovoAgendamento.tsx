@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useSearchParams, useNavigate } from 'react-router-dom'
+import axios from 'axios'
 import { establishmentService } from '../services/establishment.services'
 import { appointmentService } from '../services/appointment.services'
 import type { Availability, Employee, Service } from '../interfaces/api'
@@ -89,20 +90,40 @@ export default function NovoAgendamento() {
   const horariosDisponiveis = horarios.filter((h) => h.disponivel)
 
   async function confirmarAgendamento() {
-    if (!barbeiroId || !servicoId || !data || !horario) return
+    if (!estabelecimentoId || !barbeiroId || !servicoId || !data || !horario) {
+      setErro('Selecione o barbeiro, o serviço, a data e o horário antes de confirmar.')
+      return
+    }
+
     setEnviando(true)
     setErro('')
     try {
+      // A disponibilidade pode retornar HH:mm ou HH:mm:ss. Usar sempre HH:mm
+      // evita montar valores inválidos como 14:00:00:00 antes de chamar a API.
+      const horarioNormalizado = horario.slice(0, 5)
+      const dataHora = new Date(`${data}T${horarioNormalizado}:00`)
+
+      if (Number.isNaN(dataHora.getTime())) {
+        setErro('A data ou o horário selecionado é inválido.')
+        return
+      }
+
       await appointmentService.create({
         establishmentId: estabelecimentoId,
         employeeId: barbeiroId,
         serviceId: servicoId,
-        dateTime: `${data}T${horario}:00`,
+        // A coluna DateTime da API é timestamp without time zone. O horário
+        // selecionado representa a hora local da barbearia, portanto não
+        // devemos enviar o sufixo Z (UTC), que o Npgsql rejeita nessa coluna.
+        dateTime: `${data}T${horarioNormalizado}:00`,
         notes: observacoes.trim() || undefined,
       })
       setConfirmado(true)
-    } catch {
-      setErro('Não foi possível confirmar o agendamento. Tente novamente.')
+    } catch (error) {
+      const mensagem = axios.isAxiosError(error)
+        ? (error.response?.data?.message || error.response?.data?.title || error.response?.data?.errors?.dateTime?.[0])
+        : undefined
+      setErro(mensagem || 'Não foi possível confirmar o agendamento. Tente novamente.')
     } finally {
       setEnviando(false)
     }
@@ -315,7 +336,11 @@ export default function NovoAgendamento() {
             </label>
             <div className="novo-ag-nav">
               <button className="secundario" onClick={() => irPara('horario')}>Voltar</button>
-              <button disabled={enviando} onClick={confirmarAgendamento}>
+              <button
+                type="button"
+                disabled={enviando}
+                onClick={() => void confirmarAgendamento()}
+              >
                 {enviando ? 'Confirmando...' : 'Confirmar agendamento'}
               </button>
             </div>

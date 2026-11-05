@@ -150,7 +150,7 @@ export interface EstablishmentRequest {
   address: EnderecoDto;
 }
 export type EstabelecimentoRequest = EstablishmentRequest;
-export interface EstablishmentSearchParams { busca?: string; cidade?: string; page?: number; size?: number }
+export interface EstablishmentSearchParams { busca?: string; endereco?: string; cidade?: string; page?: number; size?: number }
 
 export interface FuncionarioDto {
   id: string;
@@ -209,8 +209,13 @@ export type StatusAgendamento = string;
 export interface AgendamentoDto {
   id: string;
   clienteId: string;
+  nomeCliente?: string;
+  clienteNome?: string;
   estabelecimentoId: string;
   nomeEstabelecimento: string;
+  enderecoEstabelecimento?: EnderecoDto | string | null;
+  endereco?: EnderecoDto | string | null;
+  telefoneEstabelecimento?: string | null;
   funcionarioId: string;
   nomeFuncionario: string;
   servicoId: string;

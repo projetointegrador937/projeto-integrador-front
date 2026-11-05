@@ -14,6 +14,35 @@ function formatMoney(value?: number) {
   return typeof value === 'number' ? value.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }) : 'Valor não informado'
 }
 
+function statusLabel(status: string) {
+  const value = String(status ?? '').trim()
+  const labels: Record<string, string> = {
+    '0': 'Pendente',
+    '1': 'Confirmado',
+    '2': 'Finalizado',
+    '3': 'Cancelado',
+  }
+  return labels[value] ?? (value && !/^\\d+$/.test(value) ? value : 'Agendamento')
+}
+
+function statusKey(status: string) {
+  return String(status ?? '').normalize('NFD').replace(/[\\u0300-\\u036f]/g, '').toUpperCase()
+}
+
+function formatAddress(appointment: Appointment) {
+  const address = appointment.enderecoEstabelecimento ?? appointment.endereco
+  if (!address) return 'Endereço não informado'
+  if (typeof address === 'string') return address
+  return [
+    address.rua,
+    address.numero,
+    address.bairro,
+    address.cidade,
+    address.estado,
+    address.cep,
+  ].filter(Boolean).join(', ') || 'Endereço não informado'
+}
+
 function Agendamentos() {
   const usuario: UserRole = getUserRole()
   const [aba, setAba] = useState<'proximos' | 'historico'>('proximos')
@@ -22,6 +51,7 @@ function Agendamentos() {
   const [agendamentos, setAgendamentos] = useState<Appointment[]>([])
   const [carregando, setCarregando] = useState(false)
   const [erro, setErro] = useState('')
+  const [cancelando, setCancelando] = useState<string | null>(null)
 
   const ano = mesAtual.getFullYear()
   const mes = mesAtual.getMonth()
@@ -60,6 +90,20 @@ function Agendamentos() {
     return data.getFullYear() === ano && data.getMonth() === mes && data.getDate() === diaSelecionado
   }) : []
 
+  async function cancelarAgendamento(agendamento: Appointment) {
+    if (!window.confirm('Deseja realmente cancelar este agendamento?')) return
+    setCancelando(agendamento.id)
+    setErro('')
+    try {
+      const response = await appointmentService.cancel(agendamento.id)
+      setAgendamentos((anteriores) => anteriores.map((item) => item.id === agendamento.id ? response.data : item))
+    } catch {
+      setErro('Não foi possível cancelar o agendamento. Tente novamente.')
+    } finally {
+      setCancelando(null)
+    }
+  }
+
   function mudarMes(direcao: number) {
     setMesAtual(new Date(ano, mes + direcao, 1))
     setDiaSelecionado(null)
@@ -75,7 +119,7 @@ function Agendamentos() {
       {carregando && <p className="agenda-vazia">Carregando agendamentos...</p>}
       {usuario === 'usuario' && <div className="agenda-abas"><button className={aba === 'proximos' ? 'ativa' : ''} onClick={() => setAba('proximos')}>Próximos agendamentos</button><button className={aba === 'historico' ? 'ativa' : ''} onClick={() => setAba('historico')}>Histórico completo</button></div>}
       {usuario === 'barbeiro' && <div className="calendario-card"><div className="calendario-cabecalho"><button onClick={() => mudarMes(-1)}>←</button><h2>{nomesMeses[mes]} {ano}</h2><button onClick={() => mudarMes(1)}>→</button></div><div className="calendario-grade">{['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'].map((dia) => <div className="calendario-semana" key={dia}>{dia}</div>)}{Array.from({ length: primeiroDia }, (_, i) => <div className="calendario-vazio" key={`vazio-${i}`} />)}{Array.from({ length: diasNoMes }, (_, i) => { const dia = i + 1; const ocupado = agendamentos.some((item) => { const data = new Date(item.dataHora); return data.getFullYear() === ano && data.getMonth() === mes && data.getDate() === dia }); return <button key={dia} className={`calendario-dia ${ocupado ? 'ocupado' : ''} ${diaSelecionado === dia ? 'selecionado' : ''}`} onClick={() => setDiaSelecionado(dia)}><span>{dia}</span>{ocupado && <i />}</button> })}</div></div>}
-      {usuario === 'barbeiro' ? <section className="agenda-dia"><h2>{diaSelecionado ? `Atendimentos de ${diaSelecionado} de ${nomesMeses[mes]}` : 'Selecione um dia no calendário'}</h2>{diaSelecionado && !doDia.length && <p className="agenda-vazia">Nenhum atendimento cadastrado para este dia.</p>}{doDia.map((item) => <article className="cliente-horario" key={item.id}><strong className="cliente-hora">{new Date(item.dataHora).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}</strong><div className="cliente-info"><h3>Cliente #{item.clienteId}</h3><p>{item.nomeServico}</p></div><span className="cliente-status">{item.status}</span></article>)}</section> : <div className="historico-lista">{!carregando && !reservas.length && <p className="agenda-vazia">Nenhum agendamento encontrado.</p>}{reservas.map((item) => <article className="historico-card" key={item.id}><div><h3>{item.nomeServico}</h3><p>{item.nomeEstabelecimento} · {item.nomeFuncionario}</p><small>{formatDate(item.dataHora)} · {formatMoney(item.valorTotal)}</small></div><span className="historico-status">{item.status}</span></article>)}</div>}
+      {usuario === 'barbeiro' ? <section className="agenda-dia"><h2>{diaSelecionado ? `Atendimentos de ${diaSelecionado} de ${nomesMeses[mes]}` : 'Selecione um dia no calendário'}</h2>{diaSelecionado && !doDia.length && <p className="agenda-vazia">Nenhum atendimento cadastrado para este dia.</p>}{doDia.map((item) => <article className="cliente-horario" key={item.id}><strong className="cliente-hora">{new Date(item.dataHora).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}</strong><div className="cliente-info"><h3>Cliente #{item.clienteId}</h3><p>{item.nomeServico}</p></div><span className="cliente-status">{statusLabel(item.status)}</span></article>)}</section> : <div className="historico-lista">{!carregando && !reservas.length && <p className="agenda-vazia">Nenhum agendamento encontrado.</p>}{reservas.map((item) => { const status = statusKey(item.status); const podeCancelar = !status.includes('CANCEL') && !status.includes('CONCLUID') && !status.includes('COMPLET') && !status.includes('REJEIT'); return <article className="historico-card" key={item.id}><div className="historico-principal"><span className="agenda-etiqueta">{statusLabel(item.status)}</span><h3>{item.nomeServico || 'Serviço não informado'}</h3><p className="historico-estabelecimento">📍 {item.nomeEstabelecimento || 'Estabelecimento não informado'}</p><p className="historico-endereco">{formatAddress(item)}</p><div className="historico-meta"><span>📅 {formatDate(item.dataHora)}</span><span>✂ {item.nomeFuncionario || 'Barbeiro não informado'}</span><span>💰 {formatMoney(item.valorTotal)}</span></div>{item.observacoes && <small>Observações: {item.observacoes}</small>} {podeCancelar && <button type="button" className="historico-cancelar" onClick={() => void cancelarAgendamento(item)} disabled={cancelando === item.id}>{cancelando === item.id ? 'Cancelando...' : 'Cancelar agendamento'}</button>}</div></article>})}</div>}
     </section>
   </main>
 }

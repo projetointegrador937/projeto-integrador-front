@@ -20,6 +20,7 @@ function App() {
   const paginaInicial =
     role === 'barbeiro' ? <Agendamentos /> :
     role === 'barbearia' ? <GestaoBarbearia /> :
+    role === 'usuario' ? <Pesquisa /> :
     <Home />
 
   return (

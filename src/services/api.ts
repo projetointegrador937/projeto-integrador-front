@@ -6,10 +6,12 @@ if (!configuredBaseUrl && import.meta.env.PROD) {
   throw new Error('VITE_API_URL não foi configurada no ambiente de produção.');
 }
 
-const base = (configuredBaseUrl || 'http://localhost:8080').replace(/\/+$/, '');
+const developmentBaseUrl = import.meta.env.VITE_API_URL_DEV?.trim();
+const base = (import.meta.env.DEV ? developmentBaseUrl : configuredBaseUrl || 'http://localhost:8080')
+  .replace(/\/+$/, '');
 
 if (!/^https?:\/\//i.test(base)) {
-  throw new Error('VITE_API_URL inválida. Use uma URL HTTP/HTTPS válida.');
+  throw new Error('URL da API inválida. Use http://localhost:8080 ou uma URL HTTPS válida.');
 }
 
 const api = axios.create({

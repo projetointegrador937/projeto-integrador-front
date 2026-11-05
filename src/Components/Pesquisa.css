@@ -67,19 +67,6 @@
     background-color: #E5A96F;
 }
 
-.mapa-container {
-    width: 100%;
-    height: 450px;
-    overflow: hidden;
-    border: 1px solid #303438;
-    border-radius: 12px;
-}
-
-.mapa-container iframe {
-    width: 100%;
-    height: 100%;
-    border: 0;
-}
 
 @media (max-width: 600px) {
     .pesquisa-form {
@@ -91,9 +78,7 @@
         width: 100%;
     }
 
-    .mapa-container {
-        height: 350px;
-    }
+
 }
 
 
@@ -167,6 +152,10 @@
 .resultado-horario {
   font-size: 13px;
   color: #9AA0A6;
+}
+
+.resultado-horario {
+  line-height: 1.6;
 }
 
 .resultado-inativo {

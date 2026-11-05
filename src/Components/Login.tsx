@@ -59,7 +59,14 @@ function Login(){
                             localStorage.setItem('accessToken', response.data.accessToken)
                             localStorage.setItem('refreshToken', response.data.refreshToken)
                             setToast({ message: 'Login realizado com sucesso!', type: 'success' })
-                            navigate(getUserRole() === 'barbearia' ? '/gestao-barbearia' : '/')
+                            const role = getUserRole()
+                            navigate(
+                                role === 'barbeiro'
+                                    ? '/agendamentos'
+                                    : role === 'barbearia'
+                                        ? '/gestao-barbearia'
+                                        : '/pesquisar',
+                            )
                         }
                     } catch {
                         const mensagem = modoCadastro

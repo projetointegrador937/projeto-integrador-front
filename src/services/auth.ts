@@ -18,9 +18,9 @@ function normalizeRole(value: unknown): UserRole {
     .replace(/[\u0300-\u036f]/g, '')
     .replace(/[\s_-]/g, '')
 
-  if (['barbeiro', 'barber', 'funcionario', 'employee'].includes(role)) return 'barbeiro'
-  if (['barbearia', 'estabelecimento', 'business', 'owner', 'proprietario', 'barbershop', 'barbershopowner'].includes(role)) return 'barbearia'
-  if (['usuario', 'user', 'cliente', 'client', 'customer'].includes(role)) return 'usuario'
+  if (['2', 'barbeiro', 'barber', 'funcionario', 'employee'].includes(role)) return 'barbeiro'
+  if (['3', 'barbearia', 'estabelecimento', 'business', 'owner', 'proprietario', 'barbershop', 'barbershopowner'].includes(role)) return 'barbearia'
+  if (['1', '4', 'usuario', 'user', 'cliente', 'client', 'customer'].includes(role)) return 'usuario'
   return 'visitante'
 }
 
