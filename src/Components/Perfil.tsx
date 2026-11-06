@@ -188,9 +188,8 @@ function Perfil() {
           cep: endereco.cep,
           cidade: endereco.cidade,
           estado: endereco.estado,
-          latitude: null,
-          longitude: null,
-        } }),
+        }}),
+
       })
       setToast({ message: 'Dados do usuário atualizados com sucesso.', type: 'success' })
     } catch {
@@ -338,7 +337,7 @@ function Perfil() {
               </div>
             </div>
 
-            <div className="perfil-secao">
+            {donoBarbearia && <div className="perfil-secao">
               <h2>Endereço</h2>
 
               <div className="perfil-grid">
@@ -430,7 +429,7 @@ function Perfil() {
                   />
                 </div>
               </div>
-            </div>
+            </div>}
 
             <div className="perfil-acoes">
               <button

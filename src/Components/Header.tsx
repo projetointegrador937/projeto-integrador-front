@@ -65,7 +65,7 @@ function Header() {
               <Link to="/parceiros" onClick={fecharMenu}>PARCEIROS</Link>
             </>}
             {role === 'usuario' && (
-              <Link to="/agendamentos" onClick={fecharMenu}>AGENDAR / MEUS AGENDAMENTOS</Link>
+              <Link to="/pesquisar" onClick={fecharMenu}>AGENDAR</Link>
             )}
             {role === 'barbeiro' && (
               <Link to="/agendamentos" onClick={fecharMenu}>MINHA AGENDA / PAUSAS</Link>
