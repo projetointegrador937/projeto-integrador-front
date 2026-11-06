@@ -19,9 +19,13 @@ function formatDate(value: string) {
   return new Date(value).toLocaleString('pt-BR', { weekday: 'short', day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' })
 }
 
-function Home() {
+interface HomeProps {
+  publico?: boolean
+}
+
+function Home({ publico = false }: HomeProps) {
   const navigate = useNavigate()
-  const role = getUserRole()
+  const role = publico ? 'visitante' : getUserRole()
   const [agendamentos, setAgendamentos] = useState<Appointment[]>([])
   const [carregando, setCarregando] = useState(role === 'usuario')
   const [erro, setErro] = useState('')

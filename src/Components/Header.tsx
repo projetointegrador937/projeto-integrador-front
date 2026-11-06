@@ -60,7 +60,7 @@ function Header() {
         >
           <div className="header-nav">
             {role !== 'barbearia' && role !== 'barbeiro' && role !== 'usuario' && <>
-              <Link to="/" onClick={fecharMenu}>HOME</Link>
+              <Link to="/home" onClick={fecharMenu}>HOME</Link>
               <Link to="/pesquisar" onClick={fecharMenu}>PESQUISAR</Link>
               <Link to="/parceiros" onClick={fecharMenu}>PARCEIROS</Link>
             </>}

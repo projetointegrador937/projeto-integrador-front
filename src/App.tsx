@@ -29,6 +29,7 @@ function App() {
         <Header />
         <Routes>
           <Route path='/' element={paginaInicial} />
+          <Route path='/home' element={<Home publico />} />
           <Route path='/login' element={<Login />} />
           <Route
             path='/pesquisar'
